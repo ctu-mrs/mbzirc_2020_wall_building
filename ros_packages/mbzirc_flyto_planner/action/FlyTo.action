@@ -1,0 +1,14 @@
+#goal definition
+mrs_msgs/Reference[]      points
+bool                      plan_in_loop
+bool                      use_yaw
+float32                   velocity
+---
+#result definition
+bool                      success
+string                    message 
+---
+#feedback
+float32                   remaining_time
+float32                   distance_to_goal
+bool                      is_replanned

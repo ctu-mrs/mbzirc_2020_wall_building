@@ -1,0 +1,4 @@
+# after this time the object is deactivated if not seen anymore
+object_inactive_time: 1.0 # [s]
+
+drones_names: [uav1, uav2, uav3]

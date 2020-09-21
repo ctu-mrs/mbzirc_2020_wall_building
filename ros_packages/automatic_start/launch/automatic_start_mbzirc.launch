@@ -1,0 +1,140 @@
+<launch>
+
+  <!-- args corresponding to environment variables -->
+  <arg name="UAV_NAME" default="$(env UAV_NAME)" />
+  <arg name="RUN_TYPE" default="$(env RUN_TYPE)" />
+
+  <arg name="challenge" default="" />
+  <arg name="rc_mode" default="0" />
+
+  <arg if="$(eval arg('challenge') == 'balloons')" name="CHALLENGE" value="balloons" />
+  <arg if="$(eval arg('challenge') == 'ball')" name="CHALLENGE" value="ball" />
+  <arg if="$(eval arg('challenge') == 'fire')" name="CHALLENGE" value="fire" />
+  <arg if="$(eval arg('challenge') == 'fire_indoor')" name="CHALLENGE" value="fire_indoor" />
+  <arg if="$(eval arg('challenge') == 'blanket')" name="CHALLENGE" value="blanket" />
+  <arg if="$(eval arg('challenge') == 'wall')" name="CHALLENGE" value="wall" />
+
+  <arg if="$(eval arg('RUN_TYPE') == 'simulation')" name="simulation" default="true" />
+  <arg if="$(eval arg('RUN_TYPE') == 'uav')" name="simulation" default="false" />
+
+    <!-- other args -->
+  <arg name="standalone" default="true" />
+
+  <arg     if="$(arg standalone)" name="nodelet" value="standalone" />
+  <arg unless="$(arg standalone)" name="nodelet" value="load" />
+  <arg     if="$(arg standalone)" name="nodelet_manager" value="" />
+  <arg unless="$(arg standalone)" name="nodelet_manager" value="$(arg UAV_NAME)_vision_nodelet_manager" />
+
+  <group ns="$(arg UAV_NAME)">
+
+    <node name="automatic_start_mbzirc" pkg="nodelet" type="nodelet" args="$(arg nodelet) automatic_start_mbzirc/AutomaticStartMbzirc $(arg nodelet_manager)" output="screen">
+
+      <rosparam file="$(find automatic_start_mbzirc)/config/automatic_start_mbzirc.yaml" />
+
+      <param name="scripts_path" value="$(optenv HOME)/git/uav_core/miscellaneous/automatic_nuc_shutdown" />
+
+      <param name="CHALLENGE" value="$(arg CHALLENGE)" />
+      <param name="simulation" value="$(arg simulation)" />
+      <param name="rc_mode" value="$(arg rc_mode)" />
+
+        <!-- Subscribers -->
+      <remap from="~mavros_state_in" to="mavros/state" />
+      <remap from="~rc_in" to="mavros/rc/in" />
+      <remap from="~control_manager_diagnostics_in" to="control_manager/diagnostics" />
+      <remap from="~dropoff_pose_in" to="arena_publisher/dropoff_pose" />
+
+        <!-- Wall subscribers -->
+      <param if="$(eval arg('challenge') == 'wall')" name="check_bluefox1" type="bool" value="true" />
+      <remap if="$(eval arg('challenge') == 'wall')" from="~bluefox1_in" to="bluefox_brick/camera_info" />
+
+      <param if="$(eval arg('challenge') == 'wall')" name="check_bluefox2" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'wall')" from="~bluefox2_in" to="~bluefox2_in" />
+
+      <param if="$(eval arg('challenge') == 'wall')" name="check_realsense" type="bool" value="true" />
+      <remap if="$(eval arg('challenge') == 'wall' and arg('RUN_TYPE') == 'simulation')" from="~realsense_in" to="rs_d435/aligned_depth_to_color/camera_info" />
+      <remap if="$(eval arg('challenge') == 'wall' and arg('RUN_TYPE') == 'uav')" from="~realsense_in" to="rs_d435/depth/camera_info" />
+
+        <!-- Ball subscribers -->
+      <param if="$(eval arg('challenge') == 'ball')" name="check_bluefox1" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'ball')" from="~bluefox1_in" to="bluefox3_front/camera_info" />
+
+      <param if="$(eval arg('challenge') == 'ball')" name="check_bluefox2" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'ball')" from="~bluefox2_in" to="~bluefox2_in" />
+
+      <param if="$(eval arg('challenge') == 'ball')" name="check_realsense" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'ball')" from="~realsense" to="rs_d435/color/camera_info" />
+
+        <!-- Balloons subscribers -->
+      <param if="$(eval arg('challenge') == 'balloons')" name="check_bluefox1" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'balloons')" from="~bluefox1_in" to="bluefox_sky/camera_info" />
+
+      <param if="$(eval arg('challenge') == 'balloons')" name="check_bluefox2" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'balloons')" from="~bluefox2_in" to="~bluefox2_in" />
+
+      <param if="$(eval arg('challenge') == 'balloons')" name="check_realsense" type="bool" value="true" />
+      <remap if="$(eval arg('challenge') == 'balloons' and arg('RUN_TYPE') == 'simulation')" from="~realsense_in" to="rs_d435/aligned_depth_to_color/camera_info" />
+      <remap if="$(eval arg('challenge') == 'balloons' and arg('RUN_TYPE') == 'uav')" from="~realsense_in" to="rs_d435/depth/camera_info" />
+
+        <!-- Fire subscribers -->
+      <param if="$(eval arg('challenge') == 'fire')" name="check_bluefox1" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'fire')" from="~bluefox1_in" to="bluefox_optflow/camera_info" />
+
+      <param if="$(eval arg('challenge') == 'fire')" name="check_bluefox2" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'fire')" from="~bluefox2_in" to="~bluefox2_in" />
+
+      <param if="$(eval arg('challenge') == 'fire')" name="check_realsense" type="bool" value="true" />
+      <remap if="$(eval arg('challenge') == 'fire' and arg('RUN_TYPE') == 'simulation')" from="~realsense_in" to="rs_d435/aligned_depth_to_color/camera_info" />
+      <remap if="$(eval arg('challenge') == 'fire' and arg('RUN_TYPE') == 'uav')" from="~realsense_in" to="rs_d435/color/camera_info" />
+
+        <!-- Fire_indoor subscribers -->
+      <param if="$(eval arg('challenge') == 'fire_indoor')" name="check_bluefox1" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'fire_indoor')" from="~bluefox1_in" to="bluefox_optflow/camera_info" />
+
+      <param if="$(eval arg('challenge') == 'fire_indoor')" name="check_bluefox2" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'fire_indoor')" from="~bluefox2_in" to="~bluefox2_in" />
+
+      <param if="$(eval arg('challenge') == 'fire_indoor')" name="check_realsense" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'fire_indoor' and arg('RUN_TYPE') == 'simulation')" from="~realsense_in" to="~realsense_in" />
+      <remap if="$(eval arg('challenge') == 'fire_indoor' and arg('RUN_TYPE') == 'uav')" from="~realsense_in" to="~realsense_in" />
+
+        <!-- blanket subscribers -->
+      <param if="$(eval arg('challenge') == 'blanket')" name="check_bluefox1" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'blanket')" from="~bluefox1_in" to="~bluefox1_in" />
+
+      <param if="$(eval arg('challenge') == 'blanket')" name="check_bluefox2" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'blanket')" from="~bluefox2_in" to="~bluefox2_in" />
+
+      <param if="$(eval arg('challenge') == 'blanket')" name="check_realsense" type="bool" value="false" />
+      <remap if="$(eval arg('challenge') == 'blanket' and arg('RUN_TYPE') == 'simulation')" from="~realsense_in" to="~realsense_in" />
+      <remap if="$(eval arg('challenge') == 'blanket' and arg('RUN_TYPE') == 'uav')" from="~realsense_in" to="~realsense_in" />
+
+        <!-- services -->
+      <remap from="~takeoff_out" to="uav_manager/takeoff" />
+      <remap from="~land_home_out" to="uav_manager/land_home" />
+      <remap from="~land_there_out" to="uav_manager/land_there" />
+      <remap from="~land_out" to="uav_manager/land" />
+      <remap from="~eland_out" to="control_manager/eland" />
+      <remap from="~motors_out" to="control_manager/motors" />
+      <remap from="~arm_out" to="mavros/cmd/arming" />
+      <remap from="~shutdown_in" to="~shutdown" />
+      <remap from="~validate_reference_out" to="control_manager/validate_reference_2d" />
+
+      <remap if="$(eval arg('challenge') == 'balloons')" from="~start_out" to="balloon_circle_destroy/auto_start" />
+      <remap if="$(eval arg('challenge') == 'ball')" from="~start_out" to="balloon_planner/start_state_machine" />
+      <remap if="$(eval arg('challenge') == 'fire')" from="~start_out" to="~start" />
+      <remap if="$(eval arg('challenge') == 'fire_indoor')" from="~start_out" to="~start" />
+      <remap if="$(eval arg('challenge') == 'blanket')" from="~start_out" to="~start" />
+      <remap if="$(eval arg('challenge') == 'wall')" from="~start_out" to="start_wall" />
+
+      <remap if="$(eval arg('challenge') == 'balloons')" from="~stop_out" to="balloon_circle_destroy/stop_state_machine" />
+      <remap if="$(eval arg('challenge') == 'ball')" from="~stop_out" to="balloon_planner/stop_state_machine" />
+      <remap if="$(eval arg('challenge') == 'fire')" from="~stop_out" to="~stop" />
+      <remap if="$(eval arg('challenge') == 'fire_indoor')" from="~stop_out" to="~stop" />
+      <remap if="$(eval arg('challenge') == 'blanket')" from="~stop_out" to="~stop" />
+      <remap if="$(eval arg('challenge') == 'wall')" from="~stop_out" to="~stop" />
+
+    </node>
+
+  </group>
+
+</launch>

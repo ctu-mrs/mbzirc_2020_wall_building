@@ -1,0 +1,33 @@
+stages:
+
+  ground_placing:
+
+    thrust_limiter:
+
+      enabled: true
+      thrust_ratio: 0.9
+      thrust_timeout: 1.2
+
+  placing:
+
+    thrust_limiter:
+
+      thrust_ratio: 0.8
+      thrust_timeout: 1.2
+
+  aligning2_grasping:
+
+    odometry:
+      lateral: "gps"
+      height: "plane"
+
+  grasping:
+
+    odometry:
+      lateral: "gps"
+      height: "plane"
+
+    thrust_limiter:
+      enabled: true
+      thrust_ratio: 0.9
+      thrust_timeout: 0.2

@@ -1,0 +1,53 @@
+<launch>
+
+  <arg name="uav_name" default="uav70"/>
+  <arg name="UAV_NAME" default="uav70"/>
+  <arg name="gui" default="true"/>
+  <arg name="debug" default="false"/>
+  <arg name="simul" default="false"/>
+  <arg name="bag" default="true" />
+  
+  <!-- <arg name="cam_yaw" default="3.14159265359" /> --> 
+  <arg name="cam_yaw" default="0.0" />
+
+  <group ns="$(arg uav_name)">
+    <env name="ROSCONSOLE_CONFIG_FILE" value="$(find brick_detection)/cfg/rosconsole.yaml"/>      
+
+    <!-- launch-prefix="gdb -ex run - -args" -->
+    <node pkg="nodelet" type="nodelet" name="nodelet_manager"  args="manager" output="screen" />
+
+    <node pkg="nodelet" type="nodelet" name="brick_detection_nodelet" args="load brick_detection/BrickDetection nodelet_manager" output="screen">
+
+      <rosparam file="$(find brick_detection)/cfg/$(arg uav_name)_calib.yaml" />
+      <rosparam file="$(find brick_detection)/cfg/simulation.yaml" />
+      <param name="uav_name" type="string" value="$(arg uav_name)"/>
+      <param name="gui" type="bool" value="$(arg gui)"/>
+      <param name="simul" type="bool" value="$(arg simul)"/>
+      <param name="bag" type="bool" value="$(arg bag)"/>
+      <param name="target_frame" type="string" value="$(arg UAV_NAME)/local_origin" />
+      <param name="body_frame" type="string" value="$(arg UAV_NAME)/fcu" />
+      <param name="bf_mask" type="string" value="$(find brick_detection)/cfg/$(arg uav_name)/bf_mask.bmp" />
+      <param name="rs_mask" type="string" value="$(find brick_detection)/cfg/$(arg uav_name)/rs_mask.bmp" />
+
+      <!-- Subscribed topics -->
+      <remap from="~image/compressed" to="/$(arg uav_name)/bluefox_brick/image_raw/compressed" />
+      <remap from="~cam_info" to="/$(arg uav_name)/bluefox_brick/camera_info" /> 
+      <remap from="~depth_image" to="/$(arg uav_name)/rs_d435/depth/image_rect_raw" />
+      <remap from="~depth_camera_info" to="/$(arg uav_name)/rs_d435/depth/camera_info" /> 
+      <remap from="~uav_odometry" to="mbzirc_odom/new_odom" />
+      <remap from="~garmin_in" to="mavros/distance_sensor/garmin" />
+
+      <!-- Published topics -->
+      <remap from="~objectRelative" to="~objectRelative" />
+      <remap from="~objectPositions" to="~objectPositions" />
+      <remap from="~objects" to="~objects" />
+      <remap from="~object_array" to="~object_array" />
+      <remap from="~processedimage" to="~processedimage" />
+      <remap from="~objectImages" to="~objectImages" />
+      <remap from="~histogram" to="~histogram" />
+
+    </node>
+
+  </group>
+
+</launch>

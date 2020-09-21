@@ -1,0 +1,99 @@
+#
+## DEFINITION OF THE MBZIRC CHALLENGE ARENA
+#
+ 
+use_utm_origin: true
+utm_origin_units: 0 # 0 - UTM, 1 - Latitude Longitude
+utm_origin_lat: 0
+utm_origin_lon: 0
+utm_origin_x: 240063.74
+utm_origin_y: 2702858.65
+
+use_local_origin: false
+local_origin_x: 0.0
+local_origin_y: 0.0
+
+safety_area:
+
+  use_safety_area: true
+
+  frame_name: "gps_origin"
+
+  polygon_obstacles:
+    # loaded as a vector of matrices
+    # each matrix has polygon vertices in columns
+    # [[M1], [M2]]
+    enabled: false
+    data: [1, 10, 10, 1,    5, 8, 5,
+           1, 1, 10, 10,    5, 5, 8,]
+    rows: 2 # each matrix has two rows
+    cols: [4, 3] # nums of cols of each matrix
+
+  point_obstacles:
+    # loaded as a vector of matrices
+    # x, y, radius
+    enabled: false
+    data: [-5.0, -5.0, 2, # 1st point
+           -10.0, -10.0, 4] # 2nd point
+    rows: 1 # each matrix has a single row
+    cols: [3, 3] # nums of cols of each matrix
+
+  # convex polygon CCW
+  # race track
+  safety_area: [
+    -31.12, -20.15,
+    37.28, -42.14,
+    40.96, -40.44,
+    57.40, -7.49,
+    48.45, 2.10,
+    -11.23, 23.93,
+    -20.84, 20.22,
+    -34.48, -15.32]
+
+  max_height: 30.0
+  min_height: 1.0
+
+
+arena_ang_diff: 0.311080
+arena_center: [12.47, -10.35]
+arena_corners: [
+  -35.76, -18.66, # K
+  39.72, -42.93, # L
+  60.06, -2.15, # M
+  -18.41, 26.55] # N
+
+takeoff_center: [0.00, 0.00]
+takeoff_zone: [
+  -1.12, -1.41,
+  1.73, -0.49,
+  1.12, 1.41,
+  -1.73, 0.49]
+
+arena_type: 'fire_arena'
+
+ground_floor_floor: 0.00
+ground_floor_ceiling: 4.80
+ground_floor_center: [10.00, 5.00]
+ground_floor_outside_points: [
+  2.01, -2.82,
+  21.05, 3.30,
+  17.99, 12.82,
+  -1.05, 6.70]
+
+first_floor_floor: 5.00
+first_floor_ceiling: 9.80
+first_floor_center: [5.24, 3.47]
+first_floor_outside_points: [
+  2.01, -2.82,
+  11.53, 0.24,
+  8.47, 9.76,
+  -1.05, 6.70]
+
+second_floor_floor: 10.00
+second_floor_ceiling: 14.80
+second_floor_center: [5.24, 3.47]
+second_floor_outside_points: [
+  2.01, -2.82,
+  11.53, 0.24,
+  8.47, 9.76,
+  -1.05, 6.70]

@@ -1,0 +1,5 @@
+<library path="lib/libBrickDetection">
+  <class name="brick_detection/BrickDetection" type="brick_detection::BrickDetection" base_class_type="nodelet::Nodelet">
+    <description>Brick detection nodelet</description>
+  </class>
+</library>

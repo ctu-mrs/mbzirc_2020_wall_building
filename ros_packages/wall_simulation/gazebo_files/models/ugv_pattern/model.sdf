@@ -1,0 +1,59 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="ugv_pattern">
+  <static>true</static>
+
+ <!-- Purple L --><!--{-->
+<link name="L">
+		  <visual name="visual">
+		  <pose>0 0 0.005 0 0 0</pose>
+			  <geometry>
+		    	<box>
+		        <size>4.02 0.42 0.01</size>
+		      </box>
+		    </geometry>
+        <material> 
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Purple</name>
+          </script>
+		    </material>
+		  </visual>
+      <visual name="visual_l">
+        <pose>-1.8 2.01 0.005 0 0 0</pose>
+			  <geometry>
+		    	<box>
+		        <size>0.42 3.60 0.01</size>
+		      </box>
+		    </geometry>
+        <material> 
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Purple</name>
+          </script>
+		    </material>
+		  </visual>
+    </link>
+    <!--}-->
+
+    <!--Squares{-->
+    <link name="Yellow squares">
+      <visual name="visual">
+        <pose> -1.80 0 0.001 1.5708 0 0 </pose>
+        <geometry>
+          <mesh>
+            <uri>model://ugv_pattern/meshes/ugv_pattern.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Yellow</name>
+            </script>
+        </material>
+      </visual>
+    </link>
+    <!--}-->
+
+  </model>
+</sdf>

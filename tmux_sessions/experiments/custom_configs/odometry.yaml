@@ -1,0 +1,22 @@
+lateral_estimator: "GPS"
+
+heading_estimator: "PIXHAWK" 
+
+altitude_estimator: "PLANE"
+
+# Active estimators are started at node launch and can be switched to during flight
+state_estimators:
+  active: ["GPS", "BRICK"]
+
+heading_estimators:
+  active: ["GYRO", "PIXHAWK", "BRICK"]
+
+gps_available: true
+brick_available: true
+
+heading:
+  yaw_brick: [10]
+
+altitude:
+  Q:
+    height_range: [1000]

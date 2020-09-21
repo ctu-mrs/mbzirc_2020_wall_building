@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Start_and_fly">
+
+	<executable package_path="mrs_flexbe_behaviors.start_and_fly_sm" class="Start_and_flySM" />
+	<tagstring></tagstring>
+	<author>Vojtech Spurny</author>
+	<date>Tue Sep 17 2019</date>
+	<description>
+		neco
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Prepare_UAV" />
+	<contains name="Goto" />
+
+	<!-- Available Parameters -->
+
+</behavior>

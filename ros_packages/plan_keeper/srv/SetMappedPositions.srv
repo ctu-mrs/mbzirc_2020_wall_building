@@ -1,0 +1,4 @@
+brick_mapping/MappedArenaObjects mapped_objects
+---
+bool success
+string message

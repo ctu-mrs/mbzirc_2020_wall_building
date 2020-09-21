@@ -1,0 +1,201 @@
+# rate of publishing the trajectory
+rate: 100 # [Hz]
+diagnostics_rate: 1 # [Hz]
+gripper_timer_rate: 10 # [Hz]
+
+# sampling of the trajectory
+trajectory_dt: 0.20
+
+# number of states in object's state vector
+number_of_states: 10
+
+safety_area_min_height: -1.0 # [m]
+
+map_long_inactive_time: 60 # [s]
+map_short_inactive_time: 10 # [s]
+
+# target offset in fcu_untilted
+fcu_offset:
+  x: 0.0 # [m]
+  y: 0.0 # [m]
+
+gripper_filter:
+
+  buffer_size: 5
+  max_difference: 0.001
+
+gain_schedulling:
+
+  wind_suffix: "_w"
+  nowind_suffix: ""
+
+  world_disturbace_thr: 2.0 # [N]
+
+  grasping_gains_name: "grasp"
+
+brick_traverse_constraints: "slow"
+nobrick_traverse_constraints: "medium"
+
+stages:
+
+  aligning_grasping:
+    speed: 1.0 # [m/s]
+    height: 2.0 # [m]
+    radius: 0.2 # [m]
+    timeout: 10.0 # [s]
+    controller: "So3Controller"
+    odometry:
+      lateral: "gps"
+      height: "plane"
+    gains: "soft"
+    constraints: "slow"
+
+  descending:
+    speed: 0.3 # [m/s]
+    height: 0.8 # [m]
+    timeout: 10.0 # [s]
+    controller: "So3Controller"
+    odometry:
+      lateral: "gps"
+      height: "plane"
+    gains: "soft"
+    constraints: "slow"
+
+  aligning2_grasping:
+
+    timeout: 10.0 # [s]
+
+    criterion:
+      initial_x: 0.03 # [m], +-
+      initial_y: 0.03 # [m], +-
+      x_increase_rate: 0.01 # [m/s]
+      y_increase_rate: 0.007 # [m/s]
+
+    in_alignment_duration: 0.5 # [s]
+    alignment_criterion: 1 # {0 = control_error, 1 = brick_detection}
+    controller: "So3Controller"
+    odometry:
+      lateral: "brick"
+      height: "plane"
+    gains: "grasp"
+    constraints: "grasping"
+
+  grasping:
+    timeout: 7.0 # [s]
+    speed: 0.25 # [m/s]
+    height: -1.0 # [m], this is relative to the cmd_odom
+    repeat_threshold: 11 # [-]
+    controller: "So3Controller"
+    odometry:
+      lateral: "brick"
+      height: "plane"
+    gains: "grasp"
+    constraints: "grasping"
+
+    thrust_limiter:
+      enabled: true
+      thrust_ratio: 0.9
+      thrust_timeout: 0.10
+
+  aligning_placing:
+    speed: 1.0 # [m/s]
+    radius: 0.2 # [m]
+    timeout: 30.0 # [m]
+    height: 3.5 # [m] above ground, beware, plane works reliable above wall within 4 m
+    safety_area_min_height: 1.1
+    controller: "So3Controller"
+    odometry:
+      lateral: "gps"
+      height: "plane"
+    gains: "soft"
+    constraints: "slow"
+
+  placing:
+    timeout: 30.0 # [s]
+    speed: 0.4 # [m/s]
+    height: 0.60 # [m/s] # relative to the wall
+    controller: "So3Controller"
+    odometry:
+      lateral: "gps"
+      height: "plane"
+    gains: "soft"
+    constraints: "slow"
+
+    thrust_limiter:
+      thrust_ratio: 0.8
+      thrust_timeout: 0.15
+
+  ground_placing:
+    timeout: 15.0 # [s]
+    speed: 0.4 # [m/s]
+    height: -1.0 # [m], this is relative to the drone
+    controller: "So3Controller"
+    odometry:
+      lateral: "gps"
+      height: "plane"
+    gains: "soft"
+    constraints: "slow"
+
+    thrust_limiter:
+      thrust_ratio: 0.8
+      thrust_timeout: 0.4
+
+  after_placing:
+    delay: 0.0 # [s]
+    controller: "So3Controller"
+    odometry:
+      lateral: "gps"
+      height: "plane"
+    gains: "soft"
+    constraints: "medium"
+
+  repeating:
+    height: 2.0 # [m]
+    speed: 1.5 # [m/s]
+    controller: "So3Controller"
+    odometry:
+      lateral: "gps"
+      height: "plane"
+    gains: "soft"
+    constraints: "medium"
+
+  ascending:
+    speed: 0.5 # [m/s]
+    height: 2.0 # [m] (this is used only when calling the manual "start" service)
+    controller: "So3Controller" # do not change the controller if you dont have to
+    odometry:
+      lateral: "gps"
+      height: "plane"
+    gains: "soft"
+    constraints: "fast"
+
+  ascending_after_placing:
+    speed: 1.0 # [m/s]
+    height: 4.0 # [m] (this is the default value, used only when calling "wall_place")
+    controller: "So3Controller"
+    odometry:
+      lateral: "gps"
+      height: "plane"
+    gains: "soft"
+    constraints: "fast"
+
+  aborting:
+    height: 2.0 # [m] (this is the default value, used only when calling "wall_place")
+    controller: "So3Controller"
+    odometry:
+      lateral: "gps"
+      height: "plane"
+    gains: "soft"
+    constraints: "medium"
+
+# the number of times of loosing alignment during landing which is tolerated
+loosing_alignment_threshold: 5
+
+# time after we stop waiting for a lost object
+object_visibility_timeout: 1.0
+
+# uav pitch and roll limit
+tilt_limit: 30.0 # [deg]
+
+# if set to true, it will just follow the object in landing altitude
+not_grasping: false

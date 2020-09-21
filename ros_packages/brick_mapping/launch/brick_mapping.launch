@@ -1,0 +1,45 @@
+<launch>
+
+  <arg name="UAV_NAME" default="$(optenv UAV_NAME uav)"/>
+  <arg name="RUN_TYPE" default="$(env RUN_TYPE)"/>
+  <arg name="plotmap" default="false"/>
+  
+  <arg name="debug" default="false" />
+
+  <group ns="$(arg UAV_NAME)">
+
+	 <group if="$(eval arg('RUN_TYPE') == 'simulation')">	
+	    <node pkg="brick_mapping" type="mapping.py" name="brick_mapping" output="screen">
+		  
+		  <param name="robot_name" value="$(arg UAV_NAME)"/>
+		  <param name="plotmap" value="$(arg plotmap)"/>
+		  <rosparam file="$(find brick_mapping)/config/params.yaml" />
+		  <rosparam file="$(find mrs_flexbe_behaviors)/config/wall_simulation.yaml" />
+	      <!-- Services -->
+	      <remap from="~get_wall_brick_positions" to="brick_mapping/get_wall_brick_positions" />
+	      <remap from="~reset_map" to="brick_mapping/reset_map" />
+	      
+	      <!-- Subscribers -->
+	      <remap from="~brick_array" to="brick_estimation/map" />
+			
+	    </node>
+    </group>
+
+	<group if="$(eval arg('RUN_TYPE') == 'uav')">	
+	    <node pkg="brick_mapping" type="mapping.py" name="brick_mapping" output="screen">
+		  
+		  <param name="robot_name" value="$(arg UAV_NAME)"/>
+		  <param name="plotmap" value="$(arg plotmap)"/>
+		  <rosparam file="$(find brick_mapping)/config/params.yaml" />
+		  <rosparam file="$(find mrs_flexbe_behaviors)/config/wall_reality.yaml" />
+		  
+	      <!-- Services -->
+	      <remap from="~get_wall_brick_positions" to="brick_mapping/get_wall_brick_positions" />
+	      <remap from="~reset_map" to="brick_mapping/reset_map" />
+	      
+	    </node>
+    </group>
+ 	
+  </group>
+
+</launch>

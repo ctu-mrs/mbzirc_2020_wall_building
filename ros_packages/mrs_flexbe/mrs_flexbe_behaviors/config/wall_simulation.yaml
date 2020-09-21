@@ -1,0 +1,82 @@
+
+main:
+  
+  robot_name_list: [uav1, uav2, uav3]
+  flying_altitudes: [3.0, 4.0, 5.0]
+  
+  altitude_above_wall: 5
+  brick_pickup_spot_length: 7
+  
+  wall_yaw_randomize_along: -0.3
+  wall_length_randomize: 5
+  
+
+  red_brick_spot: [0, 0.0   ,0, 3, 8]
+  green_brick_spot: [0, 0.0 ,0, 3, 8]
+  blue_brick_spot: [0, 0.0  ,0, 3, 8]
+  orange_brick_spot: [0, 0.0 ,0, 3, 8]
+
+  wall_1_pos: [7.59, 8.22, 1.8, -0.785, 4]
+  wall_2_pos: [7.59, 8.22, 1.8,  0.785, 4]
+  wall_3_pos: [7.59, 8.22, 1.8, -0.785, 4]
+  wall_4_pos: [7.59, 8.22, 1.8,  0.785, 4]
+  
+  num_red_bricks_one_line: 24
+  num_green_bricks_one_line: 12 
+  num_blue_bricks_one_line: 6
+  num_orange_bricks_one_line: 4
+  
+  clempeeren_wait_after_start_s: 1
+  clempeeren_not_receiving_other_diagnostics_s: 1
+  
+  drop_start_altitude: 2.5
+  wall_definition_service_topic: ctop_planner/wall_definition
+  building_rules_service_topic: ctop_planner/building_rules
+  plan_keeper_plan_in_topic: plan_keeper/set_complete_plan
+  plan_keeper_get_brick_plan_topic: plan_keeper/get_brick_plan
+  plan_keeper_placed_brick_in_topic: plan_keeper/brick_placed_in
+  plan_keeper_wall_definition_in_service_topic: plan_keeper/set_wall_definition
+  plan_keeper_building_rules_in_service_topic: plan_keeper/set_building_rules
+  plan_keeper_is_brick_placeable_service_topic: plan_keeper/is_brick_placeable
+  land_home_service_topic: uav_manager/land_home
+  goto_service_topic: control_manager/goto
+  goto_reference_service_topic: control_manager/reference
+  goto_altitude_service_topic: control_manager/goto_altitude
+  flyto_server_name: flyto_server
+  control_manager_diagnostics_topic: control_manager/diagnostics
+  shared_diagnostics_topic: control_manager/diagnostics
+  frame_id: gps_origin
+  wait_for_start_service_topic: start_wall
+  brick_detection_type_service_topic: brick_detection/type
+  wall_layer_service_topic: brick_detection/layer
+  set_mapped_objects_to_plan_keeper_service_topic: plan_keeper/set_mapped_objects
+  set_yaw_service_topic: control_manager/set_heading
+  battery_status_topic: mavros/sim_battery
+  e_land_topic: control_manager/eland
+  realsense_camera_info_topic: rs_d435/aligned_depth_to_color/camera_info
+  plan_keeper_mapped_arena_topic: plan_keeper/mapped_arena
+  brick_estimation_stop_start_map_service: brick_estimation/stop_map
+  gripper_ungrip_service_topic: turnOnMagnet
+  gripper_diagnostics_topic: mrs_gripper/gripper_diagnostics
+  brick_estimation_stop_map: brick_estimation/stop_map
+  odometry_odom_gps_topic: odometry/odom_gps
+  load_mapped_arena_from_file_topic: plan_keeper/load_mapped_arena_from_file
+  brick_estimation_closest_wall_topic: brick_estimation/closest_wall
+  fly_with_brick_yaw: 1.54
+  battery_num_cells: 6
+  cell_voltage_do_not_grasp: 3.7
+  grasp_return_altitude: 2.0
+  
+arena_scanning:
+  scanning_speed: 3.0
+  scanning_altitude: 4.5
+  scanning_max_acc: 2.0
+  scanning_turning_speed: 1.5
+  scanning_robots: 1
+  scan_planner_service_topic: arena_scan_planner/plan
+  start_trajectory_following_service_topic: control_manager/start_trajectory_tracking
+  set_trajectory_service_topic: control_manager/trajectory_reference
+  reset_map_service_topic: brick_mapping/reset_map
+  get_wall_brick_positions_service_topic: brick_mapping/get_wall_brick_positions
+  
+  

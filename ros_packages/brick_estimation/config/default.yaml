@@ -1,0 +1,68 @@
+# how oftene messages are published and the rate of LKF
+estimator_rate: 100
+map_rate: 1
+rviz_rate: 10
+
+# after this time the object is deactivated if not seen anymore
+object_inactive_time: 10.0 # [s]
+
+# after this time the object is deleted if not seen anymore
+object_delete_time: 900.0 # [s]
+
+# the limit for considering two objects as one [m]
+object_distance_thr: 0.3 # [m]
+
+# exclude objects being grasped by other drones
+exclude_drones_targets: true
+drones_names: [uav63, uav64, uav65, uav70]
+exclude_drones_targets_timeout: 10.0 # [s]
+exclude_drones_targets_radius: 5.0 # [m]
+
+# banning objects around current location by a service
+allow_banning_areas: true
+ban_area_radius: 0.7 # [m]
+ban_area_timeout: 10.0 # [s]
+
+# when placing, discriminate walls with a wrong yaw angle
+wall_angle_discrimination: true
+
+wall_filtering:
+
+  height_filtering:
+
+    enabled: true
+
+    min_height: 1.0 # [m]
+    max_height: 2.3 # [m]
+
+  projection_distance_limit: 3.0 # [m]
+  max_length: 4.0 # [m]
+
+lkf:
+
+  # state matrix
+  A: [1.0, 0, 0, 0,
+      0, 1.0, 0, 0,
+      0, 0, 1.0, 0,
+      0, 0, 0, 1.0]
+
+  # input matrix
+  B: []
+
+  # measurement noise
+  R: [1.0, 0, 0, 0,
+      0, 1.0, 0, 0,
+      0, 0, 1.0, 0,
+      0, 0, 0, 1.0]
+
+  # process covariance
+  Q: [1.0, 0, 0, 0,
+      0, 1.0, 0, 0,
+      0, 0, 1.0, 0,
+      0, 0, 0, 1.0]
+
+  # measurement mapping
+  H: [1.0, 0, 0, 0,
+      0, 1.0, 0, 0,
+      0, 0, 1.0, 0,
+      0, 0, 0, 1.0]

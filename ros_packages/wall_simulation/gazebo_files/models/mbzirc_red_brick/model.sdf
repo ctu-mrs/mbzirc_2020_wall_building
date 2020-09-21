@@ -1,0 +1,68 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="mbzirc_red_brick">
+      <static>0</static>
+	  <link name="link">
+		  <pose>0 0 0.1 0 0 0</pose>
+		  <inertial>
+	          <mass>0.7</mass>
+	          <inertia>
+	            <ixx>0.004648</ixx>
+	            <ixy>0</ixy>
+	            <ixz>0</ixz>
+	            <iyy>0.007553</iyy>
+	            <iyz>0</iyz>
+	            <izz>0.007553</izz>
+	          </inertia>
+          </inertial>
+		  <visual name="main_box">
+			<geometry>
+		      <box>
+		       	<size>0.3 0.2 0.2</size>
+		      </box>
+		   	</geometry>
+		    <material>
+              <script>
+                <uri>file://media/materials/scripts/gazebo.material</uri>
+                <name>Gazebo/Red</name>
+              </script>
+            </material>
+          </visual>
+          <visual name="white_plate">
+          	<pose>0 0 0.1 0 0 0</pose>
+			<geometry>
+		      <box>
+		       	<size>0.2 0.15 0.006</size>
+		      </box>
+		   	</geometry>
+		    <material>
+              <script>
+                <uri>file://media/materials/scripts/gazebo.material</uri>
+                <name>Gazebo/White</name>
+              </script>
+            </material>
+          </visual>
+	      <collision name="collision">
+	        <pose>0 0 0 0 0 0</pose>
+	        <geometry>
+		      <box>
+		       	<size>0.3 0.2 0.2</size>
+		      </box>
+		   	</geometry>
+	        <max_contacts>10</max_contacts>
+	        <surface>
+	            <contact>
+	              <ode/>
+	            </contact>
+	            <bounce/>
+	            <friction>
+	              <ode/>
+	            </friction>
+            </surface>
+	      </collision>
+	      <self_collide>0</self_collide>
+          <kinematic>0</kinematic>
+          <gravity>1</gravity>
+	  </link>
+  </model>
+</sdf>

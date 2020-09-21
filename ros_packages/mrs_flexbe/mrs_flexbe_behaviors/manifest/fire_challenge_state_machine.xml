@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="fire_challenge_state_machine">
+
+	<executable package_path="mrs_flexbe_behaviors.fire_challenge_state_machine_sm" class="fire_challenge_state_machineSM" />
+	<tagstring>MBZIRC</tagstring>
+	<author>Vojtech Spurny</author>
+	<date>Tue Sep 17 2019</date>
+	<description>
+		Main state machine for the third challenge of MBZIRC 2020
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Prepare_UAV" />
+	<contains name="GotoAltitude" />
+	<contains name="goto_reference" />
+
+	<!-- Available Parameters -->
+
+</behavior>

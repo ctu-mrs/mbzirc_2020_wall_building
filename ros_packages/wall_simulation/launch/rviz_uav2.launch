@@ -1,0 +1,9 @@
+<launch>
+
+  <group>
+
+    <node pkg="rviz" type="rviz" name="rviz2" args="-d $(find wall_simulation)/rviz/uav2.rviz" />
+
+  </group>
+
+</launch>

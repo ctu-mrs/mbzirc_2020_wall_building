@@ -1,0 +1,16 @@
+<launch>
+  <arg name="UAV_NAME" default="$(optenv UAV_NAME uav)"/>
+  <arg name="WORLD_FILE" default="$(optenv WORLD_FILE)" />
+  <arg name="WORLD_NAME" default="$(optenv WORLD_NAME)" /> 
+
+  <arg if="$(eval arg('WORLD_FILE') == '' and arg('WORLD_NAME') != '')" name="world_file" value="$(find mrs_uav_general)/config/worlds/world_$(env WORLD_NAME).yaml" />
+  <arg if="$(eval arg('WORLD_FILE') != '')" name="world_file" value="$(arg WORLD_FILE)" />
+  
+  <group ns="$(arg UAV_NAME)">
+    <node name="arena_scan_planner" pkg="arena_scan_planner" type="arena_scan_planner" output="screen" >
+	     <rosparam file="$(arg world_file)" />
+       <rosparam file="$(find arena_scan_planner)/conf/arena_scan.yaml" />
+    </node>
+  </group>
+</launch>
+

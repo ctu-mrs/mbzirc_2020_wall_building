@@ -1,0 +1,5 @@
+<library path="lib/libAutomaticStartMbzirc">
+  <class name="automatic_start_mbzirc/AutomaticStartMbzirc" type="automatic_start_mbzirc::AutomaticStartMbzirc" base_class_type="nodelet::Nodelet">
+    <description>AutomaticStartMbzirc nodelet</description>
+  </class>
+</library>

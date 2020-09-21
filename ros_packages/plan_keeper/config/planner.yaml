@@ -1,0 +1,62 @@
+brick_ids:
+  NO_BRICK: 0
+  RED_BRICK: 1
+  GREEN_BRICK: 2
+  BLUE_BRICK: 3
+  ORANGE_BRICK: 4
+  
+brick_rewards:
+  NO_BRICK: 0
+  RED_BRICK: 2
+  GREEN_BRICK: 4
+  BLUE_BRICK: 8
+  ORANGE_BRICK: 16
+  
+brick_durations:
+  NO_BRICK: 0
+  RED_BRICK: 40
+  GREEN_BRICK: 40
+  BLUE_BRICK: 40
+  ORANGE_BRICK: 40
+  
+brick_num_robot_requirements:
+  NO_BRICK: 0
+  RED_BRICK: 1
+  GREEN_BRICK: 1
+  BLUE_BRICK: 1
+  ORANGE_BRICK: 2
+ 
+brick_reservoir_time_from_wall_s:
+  NO_BRICK: 0
+  RED_BRICK: 5
+  GREEN_BRICK: 5
+  BLUE_BRICK: 5
+  ORANGE_BRICK: 5
+  
+brick_size_length_depth_height_cm:
+  NO_BRICK: [ 0 , 0 , 0]
+  RED_BRICK: [30, 20, 20]
+  GREEN_BRICK: [60, 20, 20]
+  BLUE_BRICK: [120, 20, 20]
+  ORANGE_BRICK: [180, 20, 20]
+  
+
+#minimal distance of brick centers for concurrent building, set to e.g. 0 for deactivation
+min_distance_concurrent_brick_placing_cm: 80
+
+#whether to build entire layer first
+entire_layer_first: true
+
+#default values to be used when calling outside of ros service
+num_robots: 3
+time_budget_s: 180
+
+builded_brick_ids: []
+current_brick_ids: [-1, -1, -1]
+times_finish_actual_s: [0, 0, 0]
+
+
+#builded_brick_ids: [1, 2, 3]
+#current_brick_ids: [-1, -1, 2]
+#times_finish_actual_s: [20, 20, 20]
+

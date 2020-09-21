@@ -1,0 +1,103 @@
+<launch>
+
+  <arg name="UAV_NAME" default="$(optenv UAV_NAME uav)"/>
+  <arg name="NATO_NAME" default="$(optenv NATO_NAME uav)"/>
+  <arg name="RUN_TYPE" default="$(env RUN_TYPE)" />
+  <arg name="UAV_TYPE" default="$(env UAV_TYPE)" />
+  <arg name="PROPULSION_TYPE" default="$(env PROPULSION_TYPE)" />
+
+  <arg name="debug" default="false" />
+
+  <arg if="$(eval arg('RUN_TYPE') == 'simulation' and arg('UAV_TYPE') == 't650')" name="UAV_MASS" default="3.5" />
+  <arg if="$(eval arg('RUN_TYPE') == 'simulation' and arg('UAV_TYPE') == 'f550')" name="UAV_MASS" default="3.0" />
+  <arg if="$(eval arg('RUN_TYPE') == 'simulation' and arg('UAV_TYPE') == 'f450')" name="UAV_MASS" default="2.3" />
+  <arg if="$(eval arg('RUN_TYPE') == 'uav')" name="UAV_MASS" default="$(env UAV_MASS)" />
+
+  <arg name="g" default="9.8" />
+  <arg name="standalone" default="true" />
+  <arg name="motor_params_file" default="$(find mrs_uav_controllers)/config/$(arg RUN_TYPE)/$(arg UAV_TYPE)/motor_params_$(arg PROPULSION_TYPE).yaml" />
+
+  <arg     if="$(arg standalone)" name="nodelet" value="standalone"/>
+  <arg unless="$(arg standalone)" name="nodelet" value="load"/>
+  <arg     if="$(arg standalone)" name="nodelet_manager" value=""/>
+  <arg unless="$(arg standalone)" name="nodelet_manager" value="$(arg UAV_NAME)_nodelet_manager"/>
+
+  <arg     if="$(arg debug)" name="launch_prefix" value="debug_roslaunch"/>
+  <arg unless="$(arg debug)" name="launch_prefix" value=""/>
+
+  <group ns="$(arg UAV_NAME)">
+
+    <node pkg="nodelet" type="nodelet" name="brick_grasping" args="$(arg nodelet) brick_grasping/BrickGrasping $(arg nodelet_manager)" output="screen" launch-prefix="$(arg launch_prefix)">
+
+      <rosparam file="$(find brick_grasping)/config/default.yaml" />
+      <rosparam file="$(find brick_grasping)/config/$(arg RUN_TYPE).yaml" />
+      <rosparam if="$(eval arg('NATO_NAME') == 'echo' or arg('NATO_NAME') == 'delta' )" file="$(find brick_grasping)/config/uavs/$(arg NATO_NAME).yaml" />
+
+      <param name="uav_name" type="string" value="$(arg UAV_NAME)"/>
+      <param if="$(eval arg('RUN_TYPE') == 'simulation')" name="simulation" type="bool" value="true" />
+      <param if="$(eval arg('RUN_TYPE') != 'simulation')" name="simulation" type="bool" value="false" />
+      <param name="uav_mass" type="double" value="$(arg UAV_MASS)"/>
+      <param name="g" value="$(arg g)" />
+      <rosparam file="$(arg motor_params_file)" />
+
+      <!-- Subscribers -->
+      <remap from="~closest_red_in" to="brick_estimation/closest_red" />
+      <remap from="~closest_green_in" to="brick_estimation/closest_green" />
+      <remap from="~closest_blue_in" to="brick_estimation/closest_blue" />
+      <remap from="~closest_wall_in" to="brick_estimation/closest_wall" />
+      <remap from="~closest_any_in" to="brick_estimation/closest_any" />
+
+      <remap from="~odometry_in" to="odometry/odom_main" />
+      <remap from="~odometry_main_in" to="odometry/odom_main" />
+      <remap from="~odom_diagnostics_in" to="odometry/diagnostics" />
+      <remap from="~cmd_odom_in" to="control_manager/cmd_odom" />
+      <remap from="~attitude_command_in" to="control_manager/attitude_cmd" />
+      <remap from="~target_attitude_in" to="mavros/setpoint_raw/target_attitude" />
+      <remap from="~simulated_gripper_in" to="mrs_gripper/gripper_diagnostics" />
+      <remap from="~mrs_gripper_in" to="gripper/gripper_diagnostics" />
+
+      <!-- Service callers -->
+      <remap from="~motors_out" to="control_manager/motors" />
+      <remap from="~toggle_rangefinder_out" to="odometry/toggle_garmin" />
+      <remap from="~toggle_object_altitude_out" to="odometry/toggle_object_altitude" />
+      <remap from="~toggle_rtk_altitude_out" to="odometry/toggle_rtk_altitude" />
+      <remap from="~set_gains_out" to="gain_manager/set_gains" />
+      <remap from="~set_constraints_out" to="constraint_manager/set_constraints" />
+      <remap from="~switch_controller_out" to="control_manager/switch_controller" />
+      <remap from="~switch_lateral_odometry_out" to="odometry/change_odometry_source" />
+      <remap from="~switch_height_odometry_out" to="odometry/change_alt_estimator_type_string" />
+      <remap from="~simulation_magnet_out" to="turnOnMagnet" />
+      <remap from="~gripper_on_out" to="gripper/grip" />
+      <remap from="~gripper_off_out" to="gripper/ungrip" />
+      <remap from="~reset_map_out" to="brick_estimation/reset_map" />
+      <remap from="~ban_area_out" to="brick_estimation/ban_area" />
+      <remap from="~hover_out" to="control_manager/hover" />
+      <remap from="~reset_tracker_out" to="control_manager/tracker_reset_static" />
+      <remap from="~vision_mode_out" to="brick_detection/type" />
+      <remap from="~set_min_height_out" to="control_manager/set_min_height" />
+      <remap from="~get_min_height_out" to="control_manager/get_min_height" />
+      <remap from="~set_map_inactive_time_out" to="brick_estimation/set_inactive_time" />
+      <remap from="~set_avoidance_out" to="control_manager/mpc_tracker/collision_avoidance" />
+
+      <!-- Advertised services -->
+      <remap from="~start_in" to="~start" />
+      <remap from="~stop_in" to="~stop" />
+      <remap from="~ground_place_in" to="~ground_place" />
+      <remap from="~wall_place_in" to="~wall_place" />
+
+      <!-- Publishers -->
+      <remap from="~desired_trajectory_out" to="control_manager/trajectory_reference" />
+      <remap from="~future_points_out" to="~future_points" />
+      <remap from="~desired_relative_position_out" to="control_manager/mpc_tracker/goto_relative" />
+      <remap from="~debug_trajectory_out" to="~debug_trajectory" />
+      <remap from="~current_target_out" to="~current_target" />
+      <remap from="~grasping_result_out" to="~some_unknown_topic" />
+      <remap from="~current_target_uav_odom_out" to="~current_target_uav_odom" />
+      <remap from="~current_target_uav_yaw_out" to="~current_target_uav_yaw" />
+      <remap from="~diagnostics_out" to="~diagnostics" />
+
+    </node>
+
+  </group>
+
+</launch>

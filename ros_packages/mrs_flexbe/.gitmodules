@@ -1,0 +1,6 @@
+[submodule "flexbe_app"]
+	path = flexbe_app
+	url = https://github.com/FlexBE/flexbe_app.git
+[submodule "generic_flexbe_states"]
+	path = generic_flexbe_states
+	url = https://github.com/FlexBE/generic_flexbe_states.git

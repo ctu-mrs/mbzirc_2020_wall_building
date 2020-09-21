@@ -1,0 +1,20 @@
+main:
+  robot_name_list: [uav1, uav2]
+  flying_altitudes: [2.5, 3.5]
+  drop_start_altitude: 1.5
+  remaining_time_s: 300
+  max_planning_time_s: 30
+  planning_uav: uav1
+  ctop_plan_service_topic: ctop_planner/plan
+  ctop_existing_plan_service_topic: ctop_planner/get_existing_plan
+  wall_definition_service_topic: ctop_planner/wall_definition
+  building_rules_service_topic: ctop_planner/building_rules
+  plan_keeper_plan_in_topic: plan_keeper/set_complete_plan
+  plan_keeper_get_brick_plan_topic: plan_keeper/get_brick_plan
+  plan_keeper_placed_brick_in_topic: plan_keeper/brick_placed_in
+  plan_keeper_wall_definition_in_service_topic: plan_keeper/set_wall_definition
+  plan_keeper_building_rules_in_service_topic: plan_keeper/set_building_rules
+  plan_keeper_is_brick_placeable_service_topic: plan_keeper/is_brick_placeable
+  land_home_service_topic: uav_manager/land_home
+  flyto_server_name: flyto_server
+  

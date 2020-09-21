@@ -1,0 +1,85 @@
+<launch>
+
+  <arg name="UAV_NAME" default="$(env UAV_NAME)"/>
+  <arg name="RUN_TYPE" default="$(env RUN_TYPE)"/>
+  <arg name="WORLD_FILE" default="$(optenv WORLD_FILE)" />
+  <arg name="WORLD_NAME" default="$(optenv WORLD_NAME)" />
+
+  <arg name="rosbag" default="false" />
+  <arg name="rosbag_vision" default="false" />
+  <arg name="debug" default="false" />
+
+  <arg name="standalone" default="true" />
+
+  <arg if="$(arg rosbag)" name="name_suffix" value="2" />
+  <arg unless="$(arg rosbag)" name="name_suffix" value="" />
+
+  <arg if="$(arg rosbag_vision)" name="name_suffix_vision" value="2" />
+  <arg unless="$(arg rosbag_vision)" name="name_suffix_vision" value="" />
+
+  <arg     if="$(arg standalone)" name="nodelet" value="standalone"/>
+  <arg unless="$(arg standalone)" name="nodelet" value="load"/>
+  <arg     if="$(arg standalone)" name="nodelet_manager" value=""/>
+  <arg unless="$(arg standalone)" name="nodelet_manager" value="$(arg UAV_NAME)_nodelet_manager"/>
+
+  <arg     if="$(arg debug)" name="launch_prefix" value="debug_roslaunch"/>
+  <arg unless="$(arg debug)" name="launch_prefix" value=""/>
+
+  <arg if="$(eval arg('WORLD_FILE') == '' and arg('WORLD_NAME') != '')" name="world_file" value="$(find mrs_uav_general)/config/worlds/world_$(env WORLD_NAME).yaml" />
+  <arg if="$(eval arg('WORLD_FILE') == '' and arg('WORLD_NAME') == '' and arg('RUN_TYPE') == 'simulation')" name="world_file" value="$(find mrs_uav_general)/config/worlds/world_simulation.yaml" />
+  <arg if="$(eval arg('WORLD_FILE') != '')" name="world_file" value="$(arg WORLD_FILE)" />
+
+  <group ns="$(arg UAV_NAME)">
+
+    <node pkg="nodelet" type="nodelet" name="brick_estimation$(arg name_suffix)" args="$(arg nodelet) brick_estimation/BrickEstimation $(arg nodelet_manager)" output="screen" launch-prefix="$(arg launch_prefix)">
+
+      <rosparam file="$(find brick_estimation)/config/default.yaml" />
+      <rosparam file="$(find brick_estimation)/config/$(arg RUN_TYPE).yaml" />
+      <rosparam file="$(arg world_file)" />
+
+      <param name="UAV_NAME" type="string" value="$(arg UAV_NAME)"/>
+
+      <param name="diagnostics_topic" type="string" value="brick_grasping/diagnostics" />
+
+        <!-- subscribers -->
+      <remap from="~odometry_in" to="odometry/odom_main" />
+      <remap from="~bricks_in" to="brick_detection$(arg name_suffix_vision)/object_array" />
+      <remap from="~brick_height_in" to="brick_detection$(arg name_suffix_vision)/altitude" />
+
+        <!-- publishers -->
+      <remap from="~debug_measurements_out" to="~debug_measurements" />
+      <remap from="~debug_red_bricks_out" to="~debug_red_bricks" />
+      <remap from="~debug_green_bricks_out" to="~debug_green_bricks" />
+      <remap from="~debug_blue_bricks_out" to="~debug_blue_bricks" />
+      <remap from="~debug_walls_out" to="~debug_walls" />
+      <remap from="~debug_ground_patterns_out" to="~ground_patterns" />
+
+      <remap from="~closest_red_out" to="~closest_red" />
+      <remap from="~closest_green_out" to="~closest_green" />
+      <remap from="~closest_blue_out" to="~closest_blue" />
+      <remap from="~closest_wall_out" to="~closest_wall" />
+      <remap from="~closest_any_out" to="~closest_any" />
+
+      <remap from="~closest_red_debugging_out" to="~closest_red_debugging" />
+      <remap from="~closest_green_debugging_out" to="~closest_green_debugging" />
+      <remap from="~closest_blue_debugging_out" to="~closest_blue_debugging" />
+      <remap from="~closest_wall_debugging_out" to="~closest_wall_debugging" />
+      <remap from="~closest_any_debugging_out" to="~closest_any_debugging" />
+
+      <remap from="~map_out" to="~map" />
+
+        <!-- service servers -->
+      <remap from="~reset_map_in" to="~reset_map" />
+      <remap from="~stop_map_out" to="~stop_map" />
+      <remap from="~ban_area_in" to="~ban_area" />
+      <remap from="~set_map_timeout_in" to="~set_map_timeout" />
+      <remap from="~set_inactive_time_in" to="~set_inactive_time" />
+
+        <!-- service clients -->
+      <remap from="~validate_reference_out" to="control_manager/validate_reference_list" />
+
+    </node>
+
+  </group>
+
+</launch>

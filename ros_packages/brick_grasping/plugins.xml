@@ -1,0 +1,5 @@
+<library path="lib/libBrickGrasping">
+  <class name="brick_grasping/BrickGrasping" type="brick_grasping::BrickGrasping" base_class_type="nodelet::Nodelet">
+    <description>BrickGrasping nodelet</description>
+  </class>
+</library>

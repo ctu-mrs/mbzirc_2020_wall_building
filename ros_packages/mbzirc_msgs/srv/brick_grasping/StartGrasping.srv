@@ -1,0 +1,4 @@
+int32 goal
+---
+bool success
+string message

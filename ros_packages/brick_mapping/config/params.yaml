@@ -1,0 +1,20 @@
+num_minimal_n_corrections_wall: 1
+num_minimal_n_corrections_bricks: 6
+final_wall_min_length: 0.4
+
+max_distance_intersection_from_wall_center: 6
+
+
+connected_wall_min_dist_yaw: 0.7
+
+bricks_place_length: 8.0
+
+max_diff_yaw_same_wall: 0.5
+max_diff_xy_same_wall: 3
+wall_max_median_distance: 10
+brick_max_median_distance: 8
+ground_robot_max_median_distance: 8
+
+optimize_median_till_distance: 0.2
+optimize_median_till_count: 10
+object_detection_topic: brick_estimation/map

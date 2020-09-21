@@ -1,0 +1,5 @@
+<launch>
+  <node name="simulated_magnet" pkg="simulated_magnet" type="simulated_magnet" output="screen">
+  	<rosparam file="$(find simulated_magnet)/cfg/params.yaml" />
+  </node>
+</launch>

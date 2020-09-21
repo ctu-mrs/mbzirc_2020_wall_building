@@ -1,0 +1,96 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="mbzirc_orange_brick">
+      <static>0</static>
+	  <link name="link">
+		  <pose>0 0 0.1 0 0 0</pose>
+	        <inertial>
+	          <mass>1.2</mass>
+	          <inertia>
+	            <ixx>0.007968</ixx>
+	            <ixy>0</ixy>
+	            <ixz>0</ixz>
+	            <iyy>0.326688</iyy>
+	            <iyz>0</iyz>
+	            <izz>0.326688</izz>
+	          </inertia>
+	        </inertial>
+		  <visual name="main_box">
+			<geometry>
+		      <box>
+		       	<size>1.8 0.2 0.2</size>
+		      </box>
+		   	</geometry>
+		    <material>
+              <script>
+                <uri>file://media/materials/scripts/gazebo.material</uri>
+                <name>Gazebo/Orange</name>
+              </script>
+            </material>
+          </visual>
+          <visual name="white_plate_center">
+          	<pose>0 0 0.1 0 0 0</pose>
+			<geometry>
+		      <box>
+		       	<size>0.19 0.15 0.006</size>
+		      </box>
+		   	</geometry>
+		    <material>
+              <script>
+                <uri>file://media/materials/scripts/gazebo.material</uri>
+                <name>Gazebo/White</name>
+              </script>
+            </material>
+          </visual>
+          <visual name="white_plate_left">
+          	<pose>-0.805 0 0.1 0 0 0</pose>
+			<geometry>
+		      <box>
+		       	<size>0.19 0.15 0.006</size>
+		      </box>
+		   	</geometry>
+		    <material>
+              <script>
+                <uri>file://media/materials/scripts/gazebo.material</uri>
+                <name>Gazebo/White</name>
+              </script>
+            </material>
+          </visual>
+          <visual name="white_plate_right">
+          	<pose>0.805 0 0.1 0 0 0</pose>
+			<geometry>
+		      <box>
+		       	<size>0.19 0.15 0.006</size>
+		      </box>
+		   	</geometry>
+		    <material>
+              <script>
+                <uri>file://media/materials/scripts/gazebo.material</uri>
+                <name>Gazebo/White</name>
+              </script>
+            </material>
+          </visual>
+	      <collision name="collision">
+	        <pose>0 0 0 0 0 0</pose>
+	        <geometry>
+		      <box>
+		       	<size>1.8 0.2 0.2</size>
+		      </box>
+		   	</geometry>
+	        <max_contacts>10</max_contacts>
+	        <surface>
+	            <contact>
+	              <ode/>
+	            </contact>
+	            <bounce/>
+	            <friction>
+	              <ode/>
+	            </friction>
+            </surface>
+	      </collision>
+	      <self_collide>0</self_collide>
+          <kinematic>0</kinematic>
+          <gravity>1</gravity>
+	  </link>
+  </model>
+</sdf>

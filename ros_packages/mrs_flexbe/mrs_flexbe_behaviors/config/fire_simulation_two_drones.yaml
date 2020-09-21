@@ -1,0 +1,18 @@
+main:
+  robot_name_list: [uav1, uav2]
+  flying_altitudes: [7, 12.5]
+  wall_following_desired_speed: 1
+  wall_following_desired_wall_distance: 3
+
+  # waiting [x,y,yaw] positions, z is obtained from flying_altitudes
+  waiting_spots: [  3,  -4,  1.575,
+                   -4,   3,      0]
+
+  window_flyer_action_server_name: window_flyer
+  wall_following_action_server_name: wall_following
+  window_position_estimation_closest_window_topic: window_pos_estim/closest_window
+  window_position_estimation_reset_topic: window_pos_estim/reset
+  land_home_service_topic: uav_manager/land_home
+  e_land_topic: control_manager/eland
+  fire_detection_topic: fire_detect/ray
+

@@ -1,0 +1,13 @@
+# define the goal
+int32 goal
+float64 return_altitude
+mrs_msgs/Reference placing_position
+---
+# define the result
+bool success
+int32 result_id
+string message
+---
+# define the feedback message
+int32 stage
+string message

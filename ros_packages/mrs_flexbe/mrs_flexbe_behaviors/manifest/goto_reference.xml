@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="goto_reference">
+
+	<executable package_path="mrs_flexbe_behaviors.goto_reference_sm" class="goto_referenceSM" />
+	<tagstring></tagstring>
+	<author>Vojtech Spurny</author>
+	<date>Tue Sep 17 2019</date>
+	<description>
+		SM that will call reference service in the MRS system and wait until goal is reached.
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>

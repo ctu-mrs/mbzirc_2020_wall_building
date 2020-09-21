@@ -1,0 +1,10 @@
+rate: 2               # frame_rate [Hz]
+dt: 0.2               # time stamp of trajectory [s]
+detected_radius: 5    # radius in which planner do not looking for a new trajectory [m]
+safety_radius: 5      # safety radius around helicopter [m]
+goal_reach_distance: 0.2      # distance that is considered as reached goal  [m]
+allowed_error_in_position: -0.05 # how much planned trajectory can be inside of dangerous area
+time_of_valid_msg: 5 #[s]
+
+diagnostics_topic: plan_keeper/diagnostics
+odom_topic: odometry/slow_odom

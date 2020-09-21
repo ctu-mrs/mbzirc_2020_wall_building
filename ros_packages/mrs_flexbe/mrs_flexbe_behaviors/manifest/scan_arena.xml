@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="scan_arena">
+
+	<executable package_path="mrs_flexbe_behaviors.scan_arena_sm" class="scan_arenaSM" />
+	<tagstring></tagstring>
+	<author>Robert Penicka</author>
+	<date>Fri Jan 31 2020</date>
+	<description>
+		scanning mbzirc arena
+1) get scanning trajectory from arena_scan_planner
+2) fly to start
+3) follow trajectory
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>

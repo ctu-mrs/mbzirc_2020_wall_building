@@ -1,0 +1,54 @@
+name: simulation
+root: ./
+
+pre_window: export UAV_NAME=uav63; export RUN_TYPE=simulation; export UAV_TYPE=t650; export WORLD_NAME=simulation_challenge2
+startup_window: play_rosbag
+
+windows:
+  - roscore:
+      layout: even-vertical
+      panes:
+        - roscore  
+  - brick_mapping:
+      layout: even-vertical
+      panes:
+        - waitForRos; roslaunch brick_mapping brick_mapping.launch plotmap:=true
+  - play_rosbag:
+      layout: even-vertical
+      panes:
+        #- waitForRos; sleep 1; rosbag play ../../2020-02-08-08-28-16.bag -r 50
+        #- waitForRos; sleep 1; rosbag play ../../2020-02-10-10-52-05.bag -r 50   
+        #- waitForRos; sleep 1; rosbag play ../../2020-02-10-22-58-25.bag -r 50   
+        #- waitForRos; sleep 1; cd ~/bag_files/106_2020_02_11_14_31_45 ;rosbag play _2020-02-11-14-31-51.bag.active -r 10 -s 245.0 -u 16.0  
+        #- waitForRos; sleep 1; cd ~/bag_files/ch2_sm/55_2020_02_14_09_17_56 ;rosbag play _2020-02-14-09-18-35.bag -r 10
+        #- waitForRos; sleep 1; cd ~/bag_files/bag_poust/70_2020_02_14_14_36_11 ; rosbag play _2020-02-14-14-36-51.bag.active -r 10 -u 60.0
+        #- waitForRos; sleep 1; cd ~/bag_files/bag_poust/81_2020_02_15_10_47_03_wall_V_bad_mapping ; rosbag play *.bag -r 10.0 -u 120 
+        #- waitForRos; sleep 1; cd ~/bag_files/bag_poust/268_2020_02_16_15_01_53_vecerni_let2 ; rosbag play *.bag -r 50.0 -u 107  --topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; cd ~/bag_files/bag_poust/268_2020_02_16_15_01_53_vecerni_let2 ; rosbag play *.bag -r 50.0 -u 107  --topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; cd ~/bag_files/bag_poust/268_* ; rosbag play *.bag -r 50.0 -u 107  --topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; cd ~/bag_files/bag_poust/265_* ; rosbag play *.bag -r 50.0 -u 107  --topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; cd ~/bag_files/bag_poust/319_2020_02_18_14_18_35_bad_mapping_2.5_uavs ; rosbag play *.bag -r 50.0 --topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; cd ~/bag_files/challenge2/rehersal1/uav63/3_2020_02_20_04_58_11_autonoumous_flight_arena ; rosbag play *.bag -r 5.0 -u 78.0 --topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; cd ~/bag_files/challenge2/rehersal1/uav63/4_2020_02_20_05_05_52_wall ; rosbag play *.bag -r 20.0 -u 78.0 --topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; cd ~/bag_files/challenge2/rehersal2/uav63/20_2020_02_21_09_37_03_1st_scanning ; rosbag play *.bag -r 20.0 -s 13.0 -u 85 #--topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; cd ~/bag_files/challenge2/rehersal2/uav63/21_2020_02_21_09_41_26_scanning_exluding_ugv_bricks ; rosbag play *.bag -r 20.0 -s 13.0 -u 85 #--topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; cd ~/bag_files/challenge2/rehersal3/uav63_scanovala/34_2020_02_22_04_22_57_first_scanning ; rosbag play *.bag -r 20.0 -u 84
+        #- waitForRos; sleep 1; cd ~/bag_files/challenge2/rehersal3/uav63_scanovala/36_2020_02_22_04_35_44_the_flight_second_scanning/ ; rosbag play *.bag -r 20.0 -s 62 -u 70
+        #- waitForRos; sleep 1; rosbag play ../../2020-02-22-12-59-43.bag -r 20.0
+        #- waitForRos; sleep 1; rosbag play ../../2020-02-22-12-57-37.bag -r 20.0
+        #- waitForRos; sleep 1; rosbag play /home/robert/DATA/_mbzirc2020/competition/day1/uav63/44_2020_02_23_04_26_32/_2020-02-23-04-30-04.bag -s 15 -r 20  --topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; rosbag play "/media/robert/My Passport/MBZIRC20/BRICKS/round1/uav63/45_2020_02_23_04_39_56/_2020-02-23-04-40-42.bag" -s 15 -r 10 -u 70
+        - waitForRos; sleep 1; rosbag play /home/robert/mbzirc2020/BRICKS/round1/uav63/45_2020_02_23_04_39_56/_2020-02-23-04-40-42.bag -s 15 -r 10 -u 70
+        #- waitForRos; sleep 1; cd /home/robert/bag_files/challenge2/day2/lima/80_2020_02_24_09_51_41 ; rosbag play *.bag -s 15 -r 20 -u 94 --topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos;  sleep 1; cd ~/bag_files/challenge2/day2/delta/54_2020_02_24_09_27_27 ; rosbag play  *.bag -s 15 -u 105 -r 20 --topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; cd ~/bag_files/bag_poust/258_* ; rosbag play *.bag -r 50.0 -u 107  --topics /${UAV_NAME}/brick_estimation/map
+        #- waitForRos; sleep 1; cd ~/bag_files/bag_poust/82_2020_02_15_11_06_59_wall_V_bad_mapping_2 ; rosbag play *.bag -r 20.0 -u 120 
+        #- waitForRos; sleep 1; cd ~/bag_files/70_2020_02_08_14_28_47_Dataset_8m/; rosbag play _2020-02-08-14-28-53_Dataset_8m.bag -r 10.0 -s 100
+  - get_mapped_wall_bricks:
+      layout: even-vertical
+      panes:
+        - 'history -s "waitForRos; rosservice call /$UAV_NAME/brick_mapping/get_wall_brick_positions"'
+  - plot_map:
+      layout: even-vertical
+      panes:
+        - 'history -s "waitForRos; rosservice call /$UAV_NAME/brick_mapping/plot_map"'

@@ -1,0 +1,13 @@
+# ignore temp files
+*~
+
+# ignore vim temp files
+*.swp
+*.swo
+*.swn
+
+# Runtime-python
+*.pyc
+
+# exception to the rule
+!plan_backup/.gitkeep 

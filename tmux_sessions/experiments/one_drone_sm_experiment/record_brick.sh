@@ -1,0 +1,1 @@
+../experiment/record_brick.sh

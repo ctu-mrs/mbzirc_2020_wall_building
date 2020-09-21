@@ -1,0 +1,5 @@
+<library path="lib/libBrickEstimation">
+  <class name="brick_estimation/BrickEstimation" type="brick_estimation::BrickEstimation" base_class_type="nodelet::Nodelet">
+    <description>BrickEstimation nodelet</description>
+  </class>
+</library>

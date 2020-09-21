@@ -1,0 +1,100 @@
+#
+## DEFINITION OF THE MBZIRC CHALLENGE ARENA
+#
+ 
+use_utm_origin: true
+utm_origin_units: 0 # 0 - UTM, 1 - Latitude Longitude
+utm_origin_lat: 0
+utm_origin_lon: 0
+utm_origin_x: 240127.53
+utm_origin_y: 2702834.64
+
+use_local_origin: false
+local_origin_x: 0.0
+local_origin_y: 0.0
+
+safety_area:
+
+  use_safety_area: true
+
+  frame_name: "gps_origin"
+
+  polygon_obstacles:
+    # loaded as a vector of matrices
+    # each matrix has polygon vertices in columns
+    # [[M1], [M2]]
+    enabled: false
+    data: [1, 10, 10, 1,    5, 8, 5,
+           1, 1, 10, 10,    5, 5, 8,]
+    rows: 2 # each matrix has two rows
+    cols: [4, 3] # nums of cols of each matrix
+
+  point_obstacles:
+    # loaded as a vector of matrices
+    # x, y, radius
+    enabled: false
+    data: [-5.0, -5.0, 2, # 1st point
+           -10.0, -10.0, 4] # 2nd point
+    rows: 1 # each matrix has a single row
+    cols: [3, 3] # nums of cols of each matrix
+
+  # convex polygon CCW
+  # race track
+  safety_area: [
+    25.73, 8.28,
+    -1.92, 16.77,
+    -6.39, 16.52,
+    -12.80, 4.56,
+    -10.58, -1.36,
+    18.51, -14.20,
+    23.80, -7.98,
+    28.09, 4.25]
+
+  max_height: 30.0
+  min_height: 1.0
+
+
+arena_ang_diff: 0.297971
+arena_center: [5.81, 3.71]
+arena_corners: [
+  29.13, 7.23, # K
+  -5.65, 17.91, # L
+  -14.94, 0.57, # M
+  21.20, -15.39] # N
+
+takeoff_center: [0.00, 0.00]
+takeoff_zone: [
+  -1.14, -1.40,
+  1.73, -0.52,
+  1.14, 1.40,
+  -1.73, 0.52]
+
+arena_type: 'wall_arena'
+
+uav_wall_center: [-17.00, 2.00]
+uav_wall_zone: [
+  -19.24, 0.79,
+  -14.46, 2.26,
+  -14.76, 3.21,
+  -19.54, 1.74]
+
+uav_brick_center: [-10.00, -12.00]
+uav_brick_zone: [
+  -12.24, -13.21,
+  -7.46, -11.74,
+  -7.76, -10.79,
+  -12.54, -12.26]
+
+ugv_wall_center: [7.00, 7.00]
+ugv_wall_zone: [
+  4.76, 5.79,
+  9.54, 7.26,
+  9.24, 8.21,
+  4.46, 6.74]
+
+ugv_brick_center: [10.00, -5.00]
+ugv_brick_zone: [
+  7.76, -6.21,
+  12.54, -4.74,
+  12.24, -3.79,
+  7.46, -5.26]

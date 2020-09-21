@@ -1,0 +1,43 @@
+main:
+  robot_name_list: [uav1, uav2, uav3]
+  flying_altitudes: [7, 12.5, 2.5]
+
+  # waiting [x,y,yaw] positions, z is obtained from flying_altitudes
+  waiting_spots: [  3,  -5,  1.575,
+                   -5,   3,      0,
+                    3,  -5,      0]
+
+  window_flyer_action_server_name: window_flyer
+  lidar_flier_action_server_name: lidar_flier
+  fire_extinguish_action_server_name: fire_detect/fire_filter
+  window_position_estimation_closest_window_topic: window_pos_estim/closest_window
+  window_position_estimation_reset_topic: window_pos_estim/reset
+  land_service_topic: uav_manager/land
+  fire_detect_set_realsense_mode_topic: fire_detect/fire_localize/set_distance_to_realsense
+  e_land_service_topic: control_manager/eland
+  fire_detection_topic: fire_detect/desire
+  control_manager_diagnostics_topic: control_manager/mpc_tracker/diagnostics
+  control_manager_cmd_topic: control_manager/cmd_odom
+  goto_reference_service_topic: control_manager/reference
+  goto_altitude_service_topic: control_manager/goto_altitude
+  wait_for_start_service_topic: automatic_start_mbzirc/start
+  confirmation_service_topic: confirmation/start
+  hector_reset_service_topic: odometry/reset_hector
+  odometry_switch_service_topic: odometry/change_odometry_source
+  constraint_switch_service_topic: constraint_manager/set_constraints
+  control_manager_switch_controller_service_topic: control_manager/switch_controller 
+
+  outside_flying_controller: So3Controller 
+  inside_flying_controller: So3Controller 
+  extinguishing_controller: So3Controller 
+
+  outside_flying_constraints: medium
+  inside_flying_constraints: medium
+  extinguishing_constraints: medium
+
+lidar_flier: 
+  lidar_flier_speed_goto: 2
+  lidar_flier_speed_orbit: 2
+  lidar_flier_clockwise: False
+  lidar_flier_stick_distance: 5
+

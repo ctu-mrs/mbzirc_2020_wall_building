@@ -1,0 +1,4 @@
+int16 state_id     # see PlanStateTypes.msg
+---
+bool success
+string message

@@ -1,0 +1,13 @@
+string robot_name
+---
+bool success
+bool finished
+string message
+mrs_msgs/Reference drop_position                       #position where to place the brick
+mrs_msgs/Reference next_to_wall_wait_position          #waypoint position next to wall
+mrs_msgs/Reference drop_wait_position                  #position where to wait before placing the brick
+mrs_msgs/Reference grasp_position                      #position where to grasp the brick
+int16 brick_id                               #brick ids 
+int16 brick_type                             #brick type
+int16 wall_layer                             #wall layer
+int16 brick_see_wall_typed						 #brick see type

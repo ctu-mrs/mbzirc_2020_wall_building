@@ -1,0 +1,18 @@
+*.swp
+*.swo
+
+.tmuxinator.yml
+
+# ignore temp files
+*~
+
+# ignore vim temp files
+*.swp
+*.swo
+*.swn
+
+# Runtime-python
+*.pyc
+
+.gitman
+.gitman.old

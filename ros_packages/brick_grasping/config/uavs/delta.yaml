@@ -1,0 +1,5 @@
+# target offset in fcu_untilted
+fcu_offset:
+
+  x: 0.0 # [m]
+  y: 0.0 # [m]

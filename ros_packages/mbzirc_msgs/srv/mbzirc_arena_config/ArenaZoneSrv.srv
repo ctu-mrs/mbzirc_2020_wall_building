@@ -1,0 +1,4 @@
+ArenaZone arena_zone
+---
+bool success
+string message

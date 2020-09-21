@@ -1,0 +1,84 @@
+# THIS IS SIMULATION FILE
+
+gains: [
+  "supersoft",
+  "soft",
+  "tight",
+  "grasp",
+  "grasp_w",
+]
+
+gain_management:
+
+  # list of allowed gains per odometry mode
+  allowed_gains:
+    GPS: ["supersoft", "soft", "tight", "grasp", "grasp_w"]
+    BRICK: ["supersoft", "soft", "tight", "grasp", "grasp_w"]
+
+  # those gains will be used automatically when a localization mode switches
+  # and the current gains are not in the allowed list (next paragraphs)
+  fallback_gains:
+    GPS: "soft"
+    BRICK: "grasp"
+
+# beware, this is for SIMULATION!
+grasp:
+
+  horizontal:
+    kp: 6.0
+    kv: 4.0
+    ka: 1.0
+
+    attitude:
+      kq: 8.0
+      kw: 0.0
+
+    kib: 1.0
+    kib_lim: 10.0
+
+    kiw: 1.0
+    kiw_lim: 10.0
+
+  vertical:
+    kp: 10.0
+    kv: 5.0
+    ka: 1.0
+
+    attitude:
+      kq: 8.0
+      kw: 1.0
+
+  mass_estimator:
+    km: 1.0
+    km_lim: 6.0 # [kg, at least 1/2 of the UAVs mass to allow landing detection]
+
+# beware this is for SIMULATION
+grasp_w:
+
+  horizontal:
+    kp: 4.0
+    kv: 3.0
+    ka: 1.0
+
+    attitude:
+      kq: 8.0
+      kw: 0.0
+
+    kib: 0.7
+    kib_lim: 10.0
+
+    kiw: 0.7
+    kiw_lim: 10.0
+
+  vertical:
+    kp: 10.0
+    kv: 5.0
+    ka: 1.0
+
+    attitude:
+      kq: 8.0
+      kw: 1.0
+
+  mass_estimator:
+    km: 1.0
+    km_lim: 6.0 # [kg, at least 1/2 of the UAVs mass to allow landing detection]

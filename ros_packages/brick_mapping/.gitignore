@@ -1,0 +1,7 @@
+*~
+*.pyc
+*_tmp.py
+.cproject
+.project
+.pydevproject
+.settings/

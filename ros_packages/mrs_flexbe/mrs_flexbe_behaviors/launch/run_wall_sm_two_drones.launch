@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="uav_name" default="$(optenv UAV_NAME uav)" />
+  <arg name="behavior_name" default="wall_challenge_state_machine" />
+
+  <arg name="log_enabled" default="False" />
+  <arg name="log_folder" default="~/.flexbe_logs" />
+
+  <group ns="$(arg uav_name)">
+    <node name="flexbe_onboard_behavior" pkg="flexbe_onboard" type="start_behavior" output="screen" respawn="true">
+      <param name="~log_enabled" value="$(arg log_enabled)"/>
+      <param name="~log_folder" value="$(arg log_folder)"/>
+    </node>
+
+    <node name="flexbe_behavior_launcher" pkg="flexbe_widget" type="be_launcher" output="screen" args="-b '$(arg behavior_name)'">
+      <param name="robot_name" value="$(arg uav_name)"/>
+      <rosparam file="$(find mrs_flexbe_behaviors)/config/wall_simulation_two_drones.yaml" />
+    </node>
+
+  </group>
+</launch>

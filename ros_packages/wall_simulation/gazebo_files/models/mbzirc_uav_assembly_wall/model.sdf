@@ -1,0 +1,146 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="mbzirc_uav_assembly_wall">
+    <static>true</static>
+    <link name="link">
+      <pose>0 0 0.85 0 0 0</pose>
+
+      <collision name="collision_wall">
+        <geometry>
+          <box>
+            <size>4.0 0.3 1.7</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <visual name="visual_wall">
+        <cast_shadows>true</cast_shadows>
+        <geometry>
+          <box>
+            <size>4.0 0.3 1.7</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://mbzirc_uav_assembly_wall/materials/scripts</uri>
+            <uri>model://mbzirc_uav_assembly_wall/materials/textures</uri>
+            <name>vrc/grey_wall</name>
+          </script>
+        </material>
+      </visual>
+
+      <visual name="visual_top_plate">
+        <pose>0 00 0.85 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>4.0 0.3 0.005</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Grey</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+
+      <collision name="collision_front_channel">
+        <pose>0 0.158 0.9 -0.643 0 0</pose>
+        <geometry>
+          <box>
+            <size>4.0 0.005 0.125</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <visual name="visual_front_channel">
+        <pose>0 0.158 0.9 -0.643 0 0</pose>
+        <geometry>
+          <box>
+            <size>4.0 0.005 0.125</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/GreyTransparent</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+
+      <collision name="collision_back_channel">
+        <pose>0 -0.158 0.9 0.643 0 0</pose>
+        <geometry>
+          <box>
+            <size>4.0 0.005 0.125</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <visual name="visual_back_channel">
+        <pose>0 -0.158 0.9 0.643 0 0</pose>
+        <geometry>
+          <box>
+            <size>4.0 0.005 0.125</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/GreyTransparent</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+
+      <!--
+      <collision name="collision_left_channel">
+        <pose>-2.0375 0 0.9 0 -0.643 0</pose>
+        <geometry>
+          <box>
+            <size>0.005 0.3 0.125</size>
+          </box>
+        </geometry>
+      </collision>
+
+      <visual name="visual_left_channel">
+        <pose>-2.0375 0 0.9 0 -0.643 0</pose>
+        <geometry>
+          <box>
+            <size>0.005 0.3 0.125</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/GreyTransparent</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+
+      <collision name="collision_right_channel">
+        <pose>2.0375 0 0.9 0 0.643 0</pose>
+        <geometry>
+          <box>
+            <size>0.005 0.3 0.125</size>
+          </box>
+        </geometry>
+      </collision>
+      
+      <visual name="visual_right_channel">
+        <pose>2.0375 0 0.9 0 0.643 0</pose>
+        <geometry>
+          <box>
+            <size>0.005 0.3 0.125</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/GreyTransparent</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+    -->
+    </link>
+  </model>
+</sdf>

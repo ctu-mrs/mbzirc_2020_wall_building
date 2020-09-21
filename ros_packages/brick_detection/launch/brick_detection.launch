@@ -1,0 +1,98 @@
+<launch>
+
+  <arg name="UAV_NAME" default="$(env UAV_NAME)" />
+  <arg name="RUN_TYPE" default="$(env RUN_TYPE)" />
+  <arg name="PIXGARM" default="$(optenv PIXGARM false)" />
+
+  <arg name="standalone" default="false" />
+  <arg name="debug" default="false" />
+  <arg name="bag" default="false"/>
+  <arg name="tomas_rosbag" default="false"/>
+
+  <arg if="$(eval arg('RUN_TYPE') == 'simulation')" name="simul" default="true" />
+  <arg if="$(eval arg('RUN_TYPE') == 'uav')" name="simul" default="false" />
+
+  <arg name="config_file" default="$(find brick_detection)/cfg/$(arg RUN_TYPE).yaml" />
+
+  <arg if="$(eval arg('RUN_TYPE') == 'simulation')" name="uav_config" default="$(find brick_detection)/cfg/$(arg UAV_NAME).yaml" />
+  <arg if="$(eval arg('RUN_TYPE') == 'uav')" name="uav_config" default="$(find brick_detection)/cfg/empty.yaml" />
+
+  <arg     if="$(eval arg('standalone') or arg('tomas_rosbag') or arg('debug') or arg('RUN_TYPE') == 'simulation')" name="nodelet" value="standalone" />
+  <arg unless="$(eval arg('standalone') or arg('tomas_rosbag') or arg('debug') or arg('RUN_TYPE') == 'simulation')" name="nodelet" value="load" />
+  <arg     if="$(eval arg('standalone') or arg('tomas_rosbag') or arg('debug') or arg('RUN_TYPE') == 'simulation')" name="nodelet_manager" value="" />
+  <arg unless="$(eval arg('standalone') or arg('tomas_rosbag') or arg('debug') or arg('RUN_TYPE') == 'simulation')" name="nodelet_manager" value="$(arg UAV_NAME)_brick_nodelet_manager" />
+
+  <arg name="custom_config" default="" />
+
+  <arg if="$(eval arg('RUN_TYPE') == 'simulation' or arg('tomas_rosbag'))" name="node_start_delay" default="0" />
+  <arg if="$(eval arg('RUN_TYPE') == 'uav' and not arg('tomas_rosbag'))" name="node_start_delay" default="10" />
+
+  <arg if="$(arg tomas_rosbag)" name="name_suffix" value="2" />
+  <arg unless="$(arg tomas_rosbag)" name="name_suffix" value="" />
+
+  <arg if="$(eval not arg('PIXGARM'))" name="range_topic" value="garmin/range" />
+  <arg if="$(eval arg('PIXGARM'))" name="range_topic" value="mavros/distance_sensor/garmin" />
+
+  <group ns="$(arg UAV_NAME)">
+
+    <env if="$(eval arg('RUN_TYPE') != 'uav' or arg('tomas_rosbag'))" name="ROSCONSOLE_CONFIG_FILE" value="$(find brick_detection)/cfg/rosconsole.yaml"/>
+
+    <node pkg="nodelet" type="nodelet" name="brick_detection$(arg name_suffix)" args="$(arg nodelet) brick_detection/BrickDetection $(arg nodelet_manager)" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); nice -n 19 $0 $@'">
+
+      <rosparam file="$(arg config_file)" />
+      <rosparam file="$(arg uav_config)" />
+      <rosparam if="$(eval not arg('custom_config') == '')" file="$(arg custom_config)" />
+      <rosparam file="$(find brick_detection)/cfg/$(arg UAV_NAME)_calib.yaml" />
+
+      <param name="uav_name" type="string" value="$(arg UAV_NAME)" />
+      <param name="simul" type="bool" value="$(arg simul)" />
+      <param name="target_frame" type="string" value="$(arg UAV_NAME)/stable_origin" />
+      <param name="body_frame" type="string" value="$(arg UAV_NAME)/fcu" />
+      <param name="bag" type="bool" value="$(arg bag)"/>
+
+      <param if="$(eval arg('RUN_TYPE') == 'simulation')" name="bf_mask" type="string" value="$(find brick_detection)/cfg/simul/bf_mask.bmp" />
+      <param if="$(eval arg('RUN_TYPE') == 'simulation')" name="rs_mask" type="string" value="$(find brick_detection)/cfg/simul/rs_mask.bmp" />
+      <param if="$(eval arg('RUN_TYPE') == 'uav')" name="bf_mask" type="string" value="$(find brick_detection)/cfg/$(arg UAV_NAME)/bf_mask.bmp" />
+      <param if="$(eval arg('RUN_TYPE') == 'uav')" name="rs_mask" type="string" value="$(find brick_detection)/cfg/$(arg UAV_NAME)/rs_mask.bmp" />
+
+        <!-- Subscribed topics -->
+      <remap from="~image" to="bluefox_brick/image_raw" />
+      <remap from="~cam_info" to="bluefox_brick/camera_info" />
+      <remap if="$(eval arg('RUN_TYPE') == 'simulation')" from="~depth_image" to="rs_d435/aligned_depth_to_color/image_raw" />
+      <remap if="$(eval arg('RUN_TYPE') == 'simulation')" from="~depth_camera_info" to="rs_d435/aligned_depth_to_color/camera_info" />
+      <remap if="$(eval arg('RUN_TYPE') == 'uav')" from="~depth_image" to="rs_d435/depth/image_rect_raw" />
+      <remap if="$(eval arg('RUN_TYPE') == 'uav')" from="~depth_camera_info" to="rs_d435/depth/camera_info" />
+      <remap from="~grasping_result" to="landing_object_controller/grasping_result" />
+      <remap from="~odometry_in" to="odometry/odom_stable" />
+      <remap from="~garmin_in" to="$(arg range_topic)" />
+
+        <!-- Published topics -->
+      <remap from="~objectRelative" to="~objectRelative" />
+      <remap from="~objectPositions" to="~objectPositions" />
+      <remap from="~objects" to="~objects" />
+      <remap from="~object_array" to="~object_array" />
+      <remap from="~processedimage" to="~processedimage" />
+      <remap from="~objectImages" to="~objectImages" />
+      <remap from="~histogram" to="~histogram" />
+      <remap from="~altitude" to="~altitude" />
+
+        <!-- Advertised services -->
+      <remap from="~type_in" to="~type" />
+      <remap from="~layer_in" to="~layer" />
+
+    </node>
+
+  </group>
+
+  <group if="$(arg tomas_rosbag)" ns="republishers">
+
+    <node name="republisher_bfx" pkg="image_transport" type="republish" args="compressed in:=/$(arg UAV_NAME)/bluefox_brick/image_raw raw out:=/$(arg UAV_NAME)/bluefox_brick/image_raw" output="screen" />
+
+    <node name="republisher_rs" pkg="image_transport" type="republish" args="compressed in:=/$(arg UAV_NAME)/rs_d435/aligned_depth_to_color/image_raw raw out:=/$(arg UAV_NAME)/rs_d435/aligned_depth_to_color/image_raw" output="screen" />
+
+    <node name="republisher_rs2" pkg="image_transport" type="republish" args="compressedDepth in:=/$(arg UAV_NAME)rs_d435/depth/image_rect_raw raw out:=/$(arg UAV_NAME)/rs_d435/depth/image_rect_raw" output="screen" />
+
+  </group>
+
+
+</launch>

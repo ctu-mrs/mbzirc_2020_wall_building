@@ -1,0 +1,34 @@
+<launch>
+
+  <include file="$(find mrs_serial)/launch/gripper.launch">
+  </include>
+  
+  <arg name="uav_name" default="$(optenv UAV_NAME uav)"/>
+  <group ns="$(arg uav_name)">
+
+    <!-- launch the node -->
+    <node name="gripper" pkg="mrs_gripper" type="mrs_gripper" output="screen" respawn="true">
+
+      <!-- <rosparam file="$(find mrs_gripper)/config/mrs_gripper.yaml" /> -->
+        
+        <!-- Subscribers -->
+      <remap from="~baca_protocol_in" to="/$(arg uav_name)/serial_gripper/received_message" />
+      <remap from="~control_manager_diag_in" to="/$(arg uav_name)/control_manager/diagnostics" />
+
+      <!-- Publishers -->
+      <remap from="~baca_protocol_out" to="/$(arg uav_name)/serial_gripper/send_message" />
+      <remap from="~gripper_diagnostics_out" to="~gripper_diagnostics" />
+
+      <!--Services-->
+      <remap from="~grip_in" to="~grip" />
+      <remap from="~ungrip_in" to="~ungrip" />
+      <remap from="~grip_nocal_in" to="~grip_nocal" />
+
+      <!-- Subscribers -->
+      <!-- <remap from="~baca_protocol_in" to="~send_message" /> -->
+
+    </node>
+
+  </group>
+
+</launch>

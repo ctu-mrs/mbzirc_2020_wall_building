@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="wall_ch_place_brick">
+
+	<executable package_path="mrs_flexbe_behaviors.wall_ch_place_brick_sm" class="wall_ch_place_brickSM" />
+	<tagstring>wall_challenge</tagstring>
+	<author>Robert Penicka</author>
+	<date>Wed Feb 12 2020</date>
+	<description>
+		sm to place brick after grasping
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>

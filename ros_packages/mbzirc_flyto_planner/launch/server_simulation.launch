@@ -1,0 +1,33 @@
+<launch>
+  <!-- launch file for uav1, for other uav the topics have to be remapped -->
+  <arg name="uav_name" default="$(env UAV_NAME)"/>
+  
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value=""/>
+  <arg     if="$(arg debug)" name="launch_prefix" value="debug_roslaunch"/>
+
+  <group ns="$(arg uav_name)">
+  
+    <node name="flyto_server" pkg="mbzirc_flyto_planner" type="flyto_server" output="screen" launch-prefix="$(arg launch_prefix)" >
+      
+      <!-- loading ros parameters -->
+      <rosparam file="$(find mbzirc_flyto_planner)/config/params.yaml" />
+      <rosparam file="$(find mrs_flexbe_behaviors)/config/wall_simulation.yaml" />
+      <param name="debug" value="true"/>
+      <param name="uav_name" value="$(arg uav_name)"/>
+      <param name="debug_all_solutions" value="false"/>
+      <param name="length_of_horizon" value="40"/>
+
+      <!-- subscribers -->
+      <remap from="~this_uav_odom_in" to="control_manager/cmd_odom"/>
+      <remap from="~tracker_diagnostics_in" to="control_manager/mpc_tracker/diagnostics"/>
+    
+      <!-- services -->
+      <remap from="~service_set_trajectory" to="control_manager/trajectory_reference"/>
+      <remap from="~service_trigger_hover" to="control_manager/hover"/>
+   
+    </node>
+  
+  </group>
+
+</launch>

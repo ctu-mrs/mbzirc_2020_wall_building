@@ -1,0 +1,21 @@
+<launch>
+
+  <arg name="UAV_NAME" default="$(optenv UAV_NAME uav)"/>
+
+  <arg name="debug" default="false" />
+
+  <group ns="$(arg UAV_NAME)">
+
+    <node pkg="sim_battery" type="battery.py" name="sim_battery" output="screen">
+
+      <rosparam file="$(find sim_battery)/config/t650.yaml" />
+      
+      <!-- publisher -->
+      <remap from="~battery" to="mavros/sim_battery" />
+      <remap from="~thrust_in" to="mavros/setpoint_raw/attitude" />
+		
+    </node>
+
+  </group>
+
+</launch>

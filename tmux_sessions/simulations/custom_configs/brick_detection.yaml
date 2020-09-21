@@ -1,0 +1,12 @@
+debug:
+  enabled: false
+
+  gui: true
+
+  red: false
+  green: false
+  blue: false
+  dbg: true
+
+  line: false
+  detector: false

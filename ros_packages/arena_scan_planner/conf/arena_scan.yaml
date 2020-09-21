@@ -1,0 +1,20 @@
+
+#fiel of intel realsense 435i is: for depth sensor 87° x 58° and max distance is 10m
+#                                 for RGB sensor 69.4° x 42.5°
+
+fieldofview_deg: 87
+overlap: 0.05
+radius_rate_shift: -0.2
+
+radius_rate_shift_first_last: 0.4
+
+#flig with yaw 90° with respect to the coverage direction
+flight_yaw_deg: 90
+
+mapping_ground_altitude: 1.7
+
+
+#tilted by 15 degrees to right
+#tilted: 15  
+
+skip_arena_sides_displacement: 3.0

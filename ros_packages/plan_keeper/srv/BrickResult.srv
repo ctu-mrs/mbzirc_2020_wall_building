@@ -1,0 +1,5 @@
+int16 brick_id     
+bool result
+---
+bool success
+string message

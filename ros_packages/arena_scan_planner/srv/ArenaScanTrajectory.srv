@@ -1,0 +1,12 @@
+float32 speed
+float32 acc
+float32 turning_speed
+float32 altitude
+float32 initial_speed
+bool loop
+int32 arena_part_id
+int32 num_robots
+---
+bool ok
+string message
+mrs_msgs/Reference[] sweep_path

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="wall_challenge_state_machine">
+
+	<executable package_path="mrs_flexbe_behaviors.wall_challenge_state_machine_sm" class="wall_challenge_state_machineSM" />
+	<tagstring>MBZIRC</tagstring>
+	<author>Vojtech Spurny, Robert Penicka</author>
+	<date>Tue Sep 17 2019</date>
+	<description>
+		Main state machine for the second challenge of MBZIRC 2020
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="scan_arena" />
+	<contains name="TakeOff" />
+	<contains name="wall_ch_place_brick" />
+
+	<!-- Available Parameters -->
+
+</behavior>

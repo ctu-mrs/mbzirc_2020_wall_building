@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="UAV_NAME" default="$(env UAV_NAME)"/>
+  <arg name="RUN_TYPE" default="$(env RUN_TYPE)"/>
+  
+  <arg name="behavior_name" default="wall_challenge_state_machine" />
+
+  <arg name="log_enabled" default="False" />
+  <arg name="log_folder" default="~/.flexbe_logs" />
+
+  <group ns="$(arg UAV_NAME)">
+    <group if="$(eval arg('RUN_TYPE') == 'simulation')">
+
+	    <node name="flexbe_onboard_behavior" pkg="flexbe_onboard" type="start_behavior" output="screen" respawn="true">
+	      <param name="~log_enabled" value="$(arg log_enabled)"/>
+	      <param name="~log_folder" value="$(arg log_folder)"/>
+	    </node>
+
+	    <node name="flexbe_behavior_launcher" pkg="flexbe_widget" type="be_launcher" output="screen" args="-b '$(arg behavior_name)'">
+	      <param name="robot_name" value="$(arg UAV_NAME)"/>
+	      <rosparam file="$(find mrs_flexbe_behaviors)/config/wall_simulation.yaml" />
+	      
+	    </node>
+    </group>
+
+    <group if="$(eval arg('RUN_TYPE') == 'uav')">
+
+	    <node name="flexbe_onboard_behavior" pkg="flexbe_onboard" type="start_behavior" output="screen" respawn="true">
+	      <param name="~log_enabled" value="$(arg log_enabled)"/>
+	      <param name="~log_folder" value="$(arg log_folder)"/>
+	    </node>
+
+	    <node name="flexbe_behavior_launcher" pkg="flexbe_widget" type="be_launcher" output="screen" args="-b '$(arg behavior_name)'">
+	      <param name="robot_name" value="$(arg UAV_NAME)"/>
+	      <rosparam file="$(find mrs_flexbe_behaviors)/config/wall_reality.yaml" />
+	      
+	    </node>
+    </group>
+    
+  </group>
+</launch>

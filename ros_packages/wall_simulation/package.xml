@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+
+  <name>wall_simulation</name>
+  <version>1.0.0</version>
+
+  <description>Package for simulation of fire</description>
+
+  <author email="tomas.baca@fel.cvut.cz">Petr Stepan</author>
+  <maintainer email="penicrob@fel.cvut.cz">Robert Pěnička</maintainer>
+
+  <license>free of charge</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>gazebo_ros</depend>
+
+  <export>
+    <gazebo_ros gazebo_model_path="${prefix}/gazebo_files/models" />
+    <gazebo_ros gazebo_media_path="${prefix}/gazebo_files/worlds" />
+  </export>
+
+</package>

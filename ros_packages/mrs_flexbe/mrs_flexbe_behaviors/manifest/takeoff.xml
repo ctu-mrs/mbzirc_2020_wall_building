@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="TakeOff">
+
+	<executable package_path="mrs_flexbe_behaviors.takeoff_sm" class="TakeOffSM" />
+	<tagstring>mavros</tagstring>
+	<author>Robert Penicka</author>
+	<date>Tue Feb 12 2019</date>
+	<description>
+		Only takeoff UAV
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>

@@ -1,0 +1,21 @@
+mpc_parameters:
+
+  horizontal:
+
+    max_speed: 1.0
+    max_acceleration: 1.0
+    max_jerk: 5.0
+
+  vertical:
+
+    max_speed: 1.0
+    max_acceleration: 1.0
+    max_u: 50.0
+
+attitude_feedback:
+
+  # saturations and limits
+  yaw_rate_saturation: 0.3 # [rad/s], disabled when 0.0
+
+# output mode to PixHawk
+output_mode: 1 # {1 = attitude_rate, 2 = attitude quaternion}

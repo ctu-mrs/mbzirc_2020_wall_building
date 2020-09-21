@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+
+  <name>mrs_gripper</name>
+  <version>0.0.1</version>
+  <description>driver for mrs gripper</description>
+
+  <maintainer email="hertdani@fel.cvut.cz">Daniel Hert</maintainer>
+
+  <license>MIT</license>
+
+  <author email="hertdani@fel.cvut.cz">Daniel Hert</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>mrs_msgs</depend>
+
+  <export>
+  </export>
+
+</package>

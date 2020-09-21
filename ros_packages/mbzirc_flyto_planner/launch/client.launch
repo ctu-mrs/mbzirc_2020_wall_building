@@ -1,0 +1,12 @@
+<launch>
+  <arg name="uav_name" default="$(env UAV_NAME)"/>
+  
+  <group ns="$(arg uav_name)">
+  
+    <node name="flyto_client" pkg="mbzirc_flyto_planner" type="flyto_client" output="screen">
+      <remap from="flyto_action" to="flyto_server"/>
+    </node>
+  
+  </group>
+
+</launch>

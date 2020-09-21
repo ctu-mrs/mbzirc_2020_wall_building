@@ -1,0 +1,100 @@
+name: simulation
+root: ./
+
+pre_window: export UAV_NAME=uav1; export RUN_TYPE=simulation; export UAV_TYPE=t650; export WORLD_NAME="simulation_challenge2"
+startup_window: flexbe
+
+windows:
+  - gazebo:
+      layout: even-vertical
+      panes:
+        - waitForRos; roslaunch wall_simulation simulation.launch gui:=true
+  - spawn:
+      layout: even-vertical
+      panes:
+        - waitForSimulation; rosrun mrs_simulation spawn 1 --$UAV_TYPE --run --delete --enable-ground-truth --wall-challenge --file pos1.txt
+        - waitForSimulation; rosrun mrs_simulation spawn 3 --$UAV_TYPE --run --delete --enable-ground-truth --wall-challenge --file pos3.txt
+  - rviz:
+      layout: even-vertical
+      panes:
+        - waitForOdometry; roslaunch wall_simulation rviz_uav1.launch
+        - waitForOdometry; roslaunch mrs_rviz_interface mrs_rviz_interface.launch
+  - control:
+      layout: even-vertical
+      panes:
+        - export UAV_NAME=uav1; waitForOdometry; roslaunch mrs_uav_general core.launch config_control_manager:=custom_configs/control_manager.yaml config_odometry:=custom_configs/odometry.yaml config_mpc_tracker:=custom_configs/mpc_tracker.yaml config_uav_manager:=custom_configs/uav_manager.yaml    
+        - export UAV_NAME=uav3; waitForOdometry; roslaunch mrs_uav_general core.launch config_control_manager:=custom_configs/control_manager.yaml config_odometry:=custom_configs/odometry.yaml config_mpc_tracker:=custom_configs/mpc_tracker.yaml config_uav_manager:=custom_configs/uav_manager.yaml
+  - brick_detection:
+      layout: even-vertical
+      panes:
+        - 'export UAV_NAME=uav1; waitForSimulation; roslaunch brick_detection brick_detection.launch'
+        - 'export UAV_NAME=uav3; waitForSimulation; roslaunch brick_detection brick_detection.launch'
+  - brick_estimation:
+      layout: even-vertical
+      panes:
+        - 'export UAV_NAME=uav1; waitForSimulation; roslaunch brick_estimation brick_estimation.launch'
+        - 'export UAV_NAME=uav3; waitForSimulation; roslaunch brick_estimation brick_estimation.launch'
+  - brick_grasping:
+      layout: even-vertical
+      panes:
+        - 'export UAV_NAME=uav1; waitForSimulation; roslaunch brick_grasping brick_grasping.launch'
+        - 'export UAV_NAME=uav3; waitForSimulation; roslaunch brick_grasping brick_grasping.launch'
+  - brick_mapping:
+      layout: even-vertical
+      panes:
+        - 'export UAV_NAME=uav1; waitForControl; roslaunch brick_mapping brick_mapping.launch'
+        - 'export UAV_NAME=uav3; waitForControl; roslaunch brick_mapping brick_mapping.launch'
+  - flexbe:
+      layout: even-vertical
+      panes:
+        - 'waitForControl; export UAV_NAME=uav1; roslaunch mrs_flexbe_behaviors run_wall_sm.launch'
+        - 'waitForControl; export UAV_NAME=uav3; roslaunch mrs_flexbe_behaviors run_wall_sm.launch'
+  - takeoff:
+      layout: even-vertical
+      panes:
+        #{ uav1
+        - 'export UAV_NAME=uav1; waitForControl;
+           sleep 20;
+           rosservice call /$UAV_NAME/mavros/cmd/arming 1;
+           sleep 1;
+           rosservice call /$UAV_NAME/mavros/set_mode 0 offboard'
+        #}
+        #{ uav3
+        - 'export UAV_NAME=uav3; waitForControl;
+           sleep 20;
+           rosservice call /$UAV_NAME/mavros/cmd/arming 1;
+           sleep 1;
+           rosservice call /$UAV_NAME/mavros/set_mode 0 offboard'
+        #}
+  - auto_start:
+      layout: even-vertical
+      panes:
+        - 'export UAV_NAME=uav1; waitForRos; roslaunch automatic_start_mbzirc automatic_start_mbzirc.launch challenge:=wall'
+        - 'export UAV_NAME=uav3; waitForRos; roslaunch automatic_start_mbzirc automatic_start_mbzirc.launch challenge:=wall'
+  - plan_keeper:
+      layout: even-vertical
+      panes:
+        - 'export UAV_NAME=uav1; waitForSimulation; roslaunch plan_keeper uav.launch'
+        - 'export UAV_NAME=uav3; waitForSimulation; roslaunch plan_keeper uav.launch'
+  - arena_scan_planner:
+      layout: even-vertical
+      panes:
+        - 'export UAV_NAME=uav1; waitForRos; roslaunch arena_scan_planner arena_scan_planner.launch'
+        - 'export UAV_NAME=uav3; waitForRos; roslaunch arena_scan_planner arena_scan_planner.launch'
+  - simulated_magnet:
+      layout: even-vertical
+      panes:
+        - 'waitForSimulation; roslaunch simulated_magnet simulation.launch'
+  - sim_battery:
+      layout: even-vertical
+      panes:
+        - 'export UAV_NAME=uav1; waitForRos; roslaunch sim_battery sim_battery.launch'
+        - 'export UAV_NAME=uav3; waitForRos; roslaunch sim_battery sim_battery.launch'
+  - layout_manager:
+      layout: even-vertical
+      panes:
+        - waitForControl; sleep 3; ~/.i3/layout_manager.sh ./layout.json
+  - roscore:
+      layout: even-vertical
+      panes:
+        - roscore

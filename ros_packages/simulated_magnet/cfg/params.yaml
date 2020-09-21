@@ -1,0 +1,43 @@
+moving_objects: []
+all_objects: ['green_cube_1','green_cube_2','green_cube_3','green_cube_4','green_cube_5','green_cube_6','green_cube_7','green_cube_8','green_cube_9','green_cube_10','green_cube_11','green_cube_12','blue_cube_1','blue_cube_2','blue_cube_3','blue_cube_4','blue_cube_5','blue_cube_6','blue_cube_7','blue_cube_8','red_cube_1','red_cube_2','red_cube_3','red_cube_4','red_cube_5','red_cube_6','red_cube_7','red_cube_8','red_cube_9','red_cube_10','red_cube_11','red_cube_12','red_cube_13','red_cube_14','red_cube_15','red_cube_16','red_cube_17','red_cube_18','red_cube_19','red_cube_20','red_cube_21','red_cube_22','red_cube_23','red_cube_24']
+#moving_objects: ['object1','object2','object3','object4','object5','object6','object7','object8','object9','object10','object11','object12','object13','object14','object15','object16','object17','object18','object19','object20' ]
+large_objects: []
+robot_names: ['uav1','uav2','uav3','uav7','uav8','uav11','uav12']
+repulse_lines : [ -30.0 , -45.0 ,  30.0 , -45.0 ,  0 ,  1 ,
+                   30.0 , -45.0 ,  30.0 ,  45.0 , -1 ,  0 ,
+                   30.0 ,  45.0 , -30.0 ,  45.0 ,  0 , -1 ,
+                  -30.0 ,  45.0 , -30.0 , -45.0 ,  1 ,  0 ,
+                  -20.0 ,  5.0  , -20.0 ,  -5.0 ,  1 ,  0 , # landing zone - center in -25 0
+                  -30.0 , -5.0  , -20.0 ,  -5.0 ,  0 ,  -1 , # landing zone - center in -25 0
+                  -30.0 ,  5.0  , -20.0 ,   5.0 ,  0 ,  1 ,# landing zone - center in -25 0
+                  -5.0  , -20.45 , 5.0  ,-20.45 ,  0 ,  1 ,# drop zone - center in 0 -25.45
+                   5.0  , -20.45 , 5.0  ,-30.45 ,  1 ,  0 ,# drop zone - center in 0 -25.45
+                   5.0  , -30.45 ,-5.0  ,-30.45 ,  0 , -1 ,# drop zone - center in 0 -25.45
+                  -5.0  , -30.45 , -5.0 ,-20.45 , -1 ,  0 ]# drop zone - center in 0 -25.45
+                  
+                  
+minX : -30.0
+maxX : 30.0
+minY : -50.0
+maxY : 50.0
+maxSpeedPerAxis : 0.19
+maxAccPerAxis : 0.01
+maxDiffAccelPerAxis : 0.01
+timeStep : 0.1
+outOfAreaAccMaxRatio : 0.2
+maxConnectDistanceXY : 0.3
+requiredRobotAboveDist : 0.2 #in which distance above is robot center from object center
+#requiredRobotAboveDistMaxErr : 0.05 #maximal error in requiredRobotAboveDist
+requiredRobotAboveDistMaxErr : 0.05
+
+large_objects_dimension : [ 2.0 , 0.15 ]
+#maxConnectDistanceXYLargeObject : 0.08
+maxConnectDistanceXYLargeObject : 0.20
+
+startRepulsionFromDistance : 8.0
+multiplyRepulseEffort : 20.0
+
+stand_suffix : 'stand'
+initially_magnet_on : true
+
+delay_attache_brick_to_ground: 1.0

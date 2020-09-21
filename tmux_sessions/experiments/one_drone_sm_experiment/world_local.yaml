@@ -1,0 +1,118 @@
+#
+## DEFINITION OF THE MBZIRC CHALLENGE ARENA
+#
+ 
+arena_id: "grand_adnec_wall"
+ 
+use_utm_origin: true
+utm_origin_units: 0 # 0 - UTM, 1 - Latitude Longitude
+utm_origin_lat: 0
+utm_origin_lon: 0
+utm_origin_x: 240057.41
+utm_origin_y: 2702856.78
+
+use_local_origin: false
+local_origin_x: 0.0
+local_origin_y: 0.0
+
+# [24.417587, 54.436588] invalid 1
+# UTM: 240063, 2702865
+# local: 5.59, 8.22
+
+# [24.417586, 54.436621] invalid 2
+# UTM: 240067, 2702865
+# local: 9.59, 8.22
+
+# [24.417615, 54.436749] budova 1
+# [24.417366, 54.436684] budova 2
+# [24.417417, 54.436506] sloup
+# [24.417495, 54.436305] ball edge 1
+# [24.417660, 54.436357] ball edge 2
+# [24.417598, 54.436579] invalid 1
+# [24.417509, 54.436531] bricks
+#
+
+safety_area:
+
+  use_safety_area: true
+
+  frame_name: "gps_origin"
+
+  polygon_obstacles:
+    # loaded as a vector of matrices
+    # each matrix has polygon vertices in columns
+    # [[M1], [M2]]
+    enabled: false
+    data: [1, 10, 10, 1,    5, 8, 5,
+           1, 1, 10, 10,    5, 5, 8,]
+    rows: 2 # each matrix has two rows
+    cols: [4, 3] # nums of cols of each matrix
+
+  point_obstacles:
+    # loaded as a vector of matrices
+    # x, y, radius
+    enabled: false
+    data: [-5.0, -5.0, 2, # 1st point
+           -10.0, -10.0, 4] # 2nd point
+    rows: 1 # each matrix has a single row
+    cols: [3, 3] # nums of cols of each matrix
+
+  # convex polygon CCW
+  # race track
+  safety_area: [
+    -17.39, -1.78,
+    -1.87, -8.06,
+    -2.78, -13.14,
+    9.70, -18.91,
+    10.84, -12.17,
+    18.35, 9.75,
+    -10.95, 16.94]
+
+  max_height: 18.00
+  min_height: 0.50
+
+
+arena_ang_diff: -0.290063
+arena_center: [0.0, 0.0]
+arena_corners: [
+    -16.39, 1.78,
+    10.84, -10.17,
+    18.35, 9.75,
+    -10.95, 16.94]
+
+takeoff_center: [0.00, 0.00]
+takeoff_zone: [
+  -3.11, -1.68,
+  1.68, -3.11,
+  3.11, 1.68,
+  -1.68, 3.11]
+
+arena_type: 'wall_arena'
+
+uav_wall_center: [-10.00, 0]
+uav_wall_zone: [
+  -10, 0,
+  -10, 5,
+  -5, 5,
+  -5, 0]
+
+uav_brick_center: [0.00, 0.00]
+uav_brick_zone: [
+  -3, -3,
+  3, -3,
+  3, 3,
+  -3, 5]
+
+ugv_wall_center: [0.00, 0.00]
+ugv_wall_zone: [
+  -3, -3,
+  3, -3,
+  3, 3,
+  -3, 5]
+
+ugv_brick_center: [0.00, 0.00]
+ugv_brick_zone: [
+  -3, -3,
+  3, -3,
+  3, 3,
+  -3, 5]

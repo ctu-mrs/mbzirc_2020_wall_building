@@ -1,0 +1,6 @@
+calib:
+  bf_x: 0.04
+  bf_y: 0.0
+  rs_x: -0.045
+  rs_y: -0.01
+  wall_off: 0.0

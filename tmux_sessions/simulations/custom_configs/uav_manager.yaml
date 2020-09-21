@@ -1,0 +1,3 @@
+takeoff:
+  after_takeoff:
+    controller: "So3Controller"

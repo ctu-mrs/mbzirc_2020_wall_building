@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Prepare_UAV">
+
+	<executable package_path="mrs_flexbe_behaviors.prepare_uav_sm" class="Prepare_UAVSM" />
+	<tagstring>mavros</tagstring>
+	<author>Vojtech Spurny</author>
+	<date>Tue Aug 20 2019</date>
+	<description>
+		SM that will prepare UAV by sequence: 
+- setting motors on 
+- arming the FCU (if simulation parameterer is set to True)
+- switching the FCU to offboard mode
+- takeoff.
+Whenever something bad happens, the UAV will lend immediately.
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>

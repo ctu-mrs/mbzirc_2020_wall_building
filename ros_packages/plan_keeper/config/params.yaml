@@ -1,0 +1,7 @@
+
+object_drop_yaw_offset: 0
+object_drop_z_offset: 0.0
+object_drop_wait_z_offset: 1.0
+diagnostics_topic_name: plan_keeper/diagnostics
+diagnostics_rate: 1 
+load_backup: true 

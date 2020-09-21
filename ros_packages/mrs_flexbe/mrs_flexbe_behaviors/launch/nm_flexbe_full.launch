@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="uav_name" default="$(optenv UAV_NAME uav)"/>
+  <arg name="standalone" default="true" />
+
+  <arg unless="$(arg standalone)" name="nodelet" value="load"/>
+  <arg     if="$(arg standalone)" name="nodelet" value="standalone"/>
+  <arg unless="$(arg standalone)" name="nodelet_manager" value="$(arg uav_name)_vision_nodelet_manager"/>
+  <arg     if="$(arg standalone)" name="nodelet_manager" value=""/>
+
+  <arg name="no_app" default="false" />
+
+  <group ns="$(arg uav_name)">
+
+    <include file="$(find flexbe_app)/launch/flexbe_ocs.launch" >
+      <arg name="offline" value="false"/>
+      <arg name="no_app" value="$(arg no_app)"/>
+    </include>
+
+    <include file="$(find flexbe_onboard)/launch/behavior_onboard.launch" />
+  </group>
+
+</launch>

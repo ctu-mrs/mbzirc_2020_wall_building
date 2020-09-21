@@ -1,0 +1,8 @@
+mbzirc_msgs/ObjectWithType wall1
+mbzirc_msgs/ObjectWithType wall2
+mbzirc_msgs/ObjectWithType wall3
+mbzirc_msgs/ObjectWithType wall4
+mbzirc_msgs/ObjectWithType bricks_red
+mbzirc_msgs/ObjectWithType bricks_green
+mbzirc_msgs/ObjectWithType bricks_blue
+mbzirc_msgs/ObjectWithType ugv_place

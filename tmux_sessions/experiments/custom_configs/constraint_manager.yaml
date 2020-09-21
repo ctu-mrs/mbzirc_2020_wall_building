@@ -1,0 +1,130 @@
+constraints: [
+  "slow",
+  "medium",
+  "fast",
+  "grasping",
+]
+
+constraint_management:
+
+  # list of allowed gains per odometry mode
+  allowed_constraints:
+    GPS: ["slow", "medium", "fast", "grasping"]
+    BRICK: ["slow", "medium", "fast", "grasping"]
+
+  # list of allowed gains per odometry mode
+  fallback_constraints:
+    GPS: "medium"
+    BRICK: "grasping"
+
+grasping:
+
+  horizontal:
+    speed: 3.0
+    acceleration: 3.0
+    jerk: 20.0
+    snap: 20.0
+
+  vertical:
+
+    ascending:
+      speed: 1.0
+      acceleration: 2.0
+      jerk: 10.0
+      snap: 20.0
+
+    descending:
+      speed: 1.0
+      acceleration: 2.0
+      jerk: 10.0
+      snap: 20.0
+
+  heading:
+    speed: 1.0
+    acceleration: 2.0
+    jerk: 10.0
+    snap: 20.0
+
+slow:
+
+  horizontal:
+    speed: 2.0
+    acceleration: 2.0
+    jerk: 10.0
+    snap: 20.0
+
+  vertical:
+
+    ascending:
+      speed: 1.0
+      acceleration: 2.0
+      jerk: 10.0
+      snap: 20.0
+
+    descending:
+      speed: 1.0
+      acceleration: 2.0
+      jerk: 10.0
+      snap: 20.0
+
+  heading:
+    speed: 1.0
+    acceleration: 2.0
+    jerk: 10.0
+    snap: 20.0
+
+medium:
+
+  horizontal:
+    speed: 4.0
+    acceleration: 2.0
+    jerk: 10.0
+    snap: 20.0
+
+  vertical:
+
+    ascending:
+      speed: 1.0
+      acceleration: 2.0
+      jerk: 10.0
+      snap: 20.0
+
+    descending:
+      speed: 1.0
+      acceleration: 2.0
+      jerk: 10.0
+      snap: 20.0
+
+  heading:
+    speed: 1.0
+    acceleration: 2.0
+    jerk: 10.0
+    snap: 20.0
+
+fast:
+
+  horizontal:
+    speed: 6.0
+    acceleration: 2.0
+    jerk: 10.0
+    snap: 20.0
+
+  vertical:
+
+    ascending:
+      speed: 1.0
+      acceleration: 2.0
+      jerk: 10.0
+      snap: 20.0
+
+    descending:
+      speed: 1.0
+      acceleration: 2.0
+      jerk: 10.0
+      snap: 20.0
+
+  heading:
+    speed: 1.0
+    acceleration: 2.0
+    jerk: 10.0
+    snap: 20.0
