@@ -39,7 +39,7 @@ echo "running the main install.sh"
 
 gitman update
 
-sudo apt-get -y install ros-melodic-flexbe-behavior-engine
+sudo apt-get -y install ros-$ROS_DISTRO-flexbe-behavior-engine
 
 MY_PATH=`dirname $TRAVIS_BUILD_DIR`
 
