@@ -12,5 +12,5 @@
 ### Flexbe
 
 ```bash
-sudo apt install ros-melodic-flexbe-behavior-engine
+sudo apt install ros-{melodic,noetic}-flexbe-behavior-engine
 ```
