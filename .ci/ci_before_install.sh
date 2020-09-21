@@ -39,6 +39,11 @@ echo "running the main install.sh"
 
 gitman update
 
+echo "clone mrs_gazebo_extras_resources"
+cd
+git clone https://github.com/ctu-mrs/mrs_gazebo_extras_resources
+cd mrs_gazebo_extras_resources
+
 sudo apt-get -y install ros-$ROS_DISTRO-flexbe-behavior-engine
 
 MY_PATH=`dirname $TRAVIS_BUILD_DIR`
@@ -47,6 +52,7 @@ mkdir -p ~/catkin_ws/src
 cd ~/catkin_ws/src
 ln -s ~/uav_core
 ln -s ~/simulation
+ln -s ~/mrs_gazebo_extras_resources
 ln -s "$MY_PATH" wall_packages
 source /opt/ros/$ROS_DISTRO/setup.bash
 cd ~/catkin_ws

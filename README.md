@@ -8,6 +8,7 @@
 [mrs_uav_system](http://github.com:ctu-mrs/mrs_uav_system)
   * [uav_core](http://github.com:ctu-mrs/uav_core)
   * [simulation](http://github.com:ctu-mrs/simulation)
+  * [mrs_gazebo_extras_resources](http://github.com:ctu-mrs/mrs_gazebo_extras_resources)
 
 ### Flexbe
 
