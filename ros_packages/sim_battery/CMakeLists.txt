@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(sim_battery)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fno-diagnostics-color")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -19,8 +19,6 @@ find_package(catkin REQUIRED COMPONENTS
   mavros_msgs
   rospy
   )
-
-
 
 catkin_package(
   # INCLUDE_DIRS include
