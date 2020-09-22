@@ -17,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES cross_detector
-   CATKIN_DEPENDS roscpp sensor_msgs std_msgs message_runtime mbzirc_msgs mrs_msgs
+   CATKIN_DEPENDS roscpp sensor_msgs std_msgs message_runtime mbzirc_msgs mrs_msgs mrs_gazebo_extras_resources
 #  DEPENDS system_lib
 )
 
