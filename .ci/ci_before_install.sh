@@ -27,8 +27,6 @@ cd uav_core
 echo "running the main install.sh"
 ./installation/install.sh
 
-gitman update
-
 echo "clone simulation"
 cd
 git clone https://github.com/ctu-mrs/simulation.git
@@ -36,8 +34,6 @@ cd simulation
 
 echo "running the main install.sh"
 ./installation/install.sh
-
-gitman update
 
 echo "clone mrs_gazebo_extras_resources"
 cd
