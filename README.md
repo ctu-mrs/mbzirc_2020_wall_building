@@ -1,7 +1,7 @@
 # MBZIRC 2020 Ch2 - Building a wall with a group of UAVs
 
-| Build status | [![Build Status](http://badges.herokuapp.com/travis.com/ctu-mrs/mbzirc_2020_wall_building?env=BADGE=bionic&label=Melodic)](https://travis-ci.com/ctu-mrs/mbzirc_2020_wall_building) | [![Build Status](http://badges.herokuapp.com/travis.com/ctu-mrs/mbzirc_2020_wall_building?env=BADGE=focal&label=Noetic)](https://travis-ci.com/ctu-mrs/mbzirc_2020_wall_building) |
-|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Build status | [![Build Status](https://github.com/ctu-mrs/mbzirc_2020_wall_building/workflows/Melodic/badge.svg)](https://github.com/ctu-mrs/mbzirc_2020_wall_building/actions) | [![Build Status](https://github.com/ctu-mrs/mbzirc_2020_wall_building/workflows/Noetic/badge.svg)](https://github.com/ctu-mrs/mbzirc_2020_wall_building/actions) |
+|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 ## Dependencies
 

@@ -7,7 +7,7 @@ lateral_estimator: "GPS"
 
 # Altitude state estimator:
 # HEIGHT - rangefinder
-altitude_estimator: "HEIGHT"
+altitude_estimator: "BARO"
 
 # Heading state estimator:
 # GYRO - gyro, COMPASS - gyro, compass, OPTFLOW - gyro, optflow, HECTOR - gyro, hector slam

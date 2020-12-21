@@ -3,7 +3,7 @@
 #                                 for RGB sensor 69.4° x 42.5°
 
 fieldofview_deg: 87
-overlap: 0.05
+overlap: 0.2
 radius_rate_shift: -0.2
 
 radius_rate_shift_first_last: 0.4

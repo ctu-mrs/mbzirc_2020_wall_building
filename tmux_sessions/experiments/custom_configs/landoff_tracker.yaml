@@ -1,4 +1,0 @@
-# During takeoff, the control error should not exceed this number.
-# if control error reaches this number, the trackers stops moving the
-# reference and waits for the controllers to move the drone in closer.
-max_position_difference: 1.0

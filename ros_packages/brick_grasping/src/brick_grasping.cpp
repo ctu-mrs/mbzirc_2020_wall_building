@@ -26,7 +26,8 @@
 #include <mrs_lib/mutex.h>
 #include <mrs_lib/transformer.h>
 #include <mrs_lib/median_filter.h>
-#include <mrs_lib/geometry_utils.h>
+#include <mrs_lib/geometry/misc.h>
+#include <mrs_lib/geometry/cyclic.h>
 
 #include <mrs_msgs/Vec4.h>
 #include <mrs_msgs/TrajectoryReference.h>
@@ -57,6 +58,16 @@
 #include <dynamic_reconfigure/ReconfigureRequest.h>
 #include <dynamic_reconfigure/Reconfigure.h>
 #include <dynamic_reconfigure/Config.h>
+
+//}
+
+/* using //{ */
+
+using vec2_t = mrs_lib::geometry::vec_t<2>;
+using vec3_t = mrs_lib::geometry::vec_t<3>;
+
+using radians  = mrs_lib::geometry::radians;
+using sradians = mrs_lib::geometry::sradians;
 
 //}
 
@@ -2327,8 +2338,8 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
     trajectory.header.stamp    = cmd_odom_stable.header.stamp;
     trajectory.header.frame_id = "stable_origin";
     target_heading             = atan2(brick_stable_y - cmd_odom_stable.pose.position.y, brick_stable_x - cmd_odom_stable.pose.position.x);
-    target_distance            = mrs_lib::dist2d(cmd_odom_stable.pose.position.x, cmd_odom_stable.pose.position.y, brick_stable_x, brick_stable_y);
-    desired_yaw                = fabs(mrs_lib::angleBetween(brick_stable_yaw, cmd_odom_stable_yaw)) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+    target_distance = mrs_lib::geometry::dist(vec2_t(cmd_odom_stable.pose.position.x, cmd_odom_stable.pose.position.y), vec2_t(brick_stable_x, brick_stable_y));
+    desired_yaw     = radians::dist(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
 
     /* double desired_height = _aligning_height_ > cmd_odom_stable.pose.position.z ? cmd_odom_stable.pose.position.z : _aligning_height_; */
     double desired_height = brick_stable_z + _aligning_height_;
@@ -2403,7 +2414,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       desired_vector             = desired_height - cmd_odom_brick.pose.position.z;
       target_distance            = fabs(desired_vector);
       direction                  = (desired_vector <= 0) ? -1 : 1;
-      desired_yaw                = fabs(mrs_lib::angleBetween(0.0, cmd_odom_brick_yaw)) < (M_PI / 2.0) ? 0 : M_PI;
+      desired_yaw                = radians::diff(0.0, cmd_odom_brick_yaw) < (M_PI / 2.0) ? 0 : M_PI;
     } else {
       trajectory.header.stamp    = cmd_odom_stable.header.stamp;
       trajectory.header.frame_id = "stable_origin";
@@ -2412,7 +2423,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       desired_vector  = desired_height - cmd_odom_stable.pose.position.z;
       target_distance = fabs(desired_vector);
       direction       = (desired_vector <= 0) ? -1 : 1;
-      desired_yaw     = fabs(mrs_lib::angleBetween(brick_stable_yaw, cmd_odom_stable_yaw)) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+      desired_yaw     = radians::diff(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
     }
 
     double step_size = _descending_speed_ * _trajectory_dt_;
@@ -2613,11 +2624,11 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
     if (_aligning_odometry_lateral_ == "brick") {
       trajectory.header.stamp    = cmd_odom_brick.header.stamp;
       trajectory.header.frame_id = "brick_origin";
-      desired_yaw                = fabs(mrs_lib::angleBetween(0.0, cmd_odom_brick_yaw)) < (M_PI / 2.0) ? 0 : M_PI;
+      desired_yaw                = radians::diff(0.0, cmd_odom_brick_yaw) < (M_PI / 2.0) ? 0 : M_PI;
     } else {
       trajectory.header.stamp    = cmd_odom_stable.header.stamp;
       trajectory.header.frame_id = "stable_origin";
-      desired_yaw = fabs(mrs_lib::angleBetween(brick_stable_yaw, cmd_odom_stable_yaw)) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+      desired_yaw                = radians::diff(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
     }
 
     auto res = transformer_.transformSingle(trajectory.header.frame_id, fcu_offset);
@@ -2715,7 +2726,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
     desired_vector             = desired_height - cmd_odom_stable.pose.position.z;
     target_distance            = fabs(desired_vector);
     direction                  = (desired_vector <= 0) ? -1 : 1;
-    desired_yaw                = fabs(mrs_lib::angleBetween(brick_stable_yaw, cmd_odom_stable_yaw)) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+    desired_yaw                = radians::diff(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
 
     double step_size = _repeating_speed_ * _trajectory_dt_;
     int    n_steps   = int(floor(target_distance / step_size));
@@ -2815,8 +2826,8 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
     trajectory.header.frame_id = "stable_origin";
     target_heading             = atan2(brick_stable_y - cmd_odom_stable.pose.position.y, brick_stable_x - cmd_odom_stable.pose.position.x);
     desired_height             = _aligning_placing_height_;
-    target_distance            = mrs_lib::dist2d(cmd_odom_stable.pose.position.x, cmd_odom_stable.pose.position.y, brick_stable_x, brick_stable_y);
-    desired_yaw                = fabs(mrs_lib::angleBetween(brick_stable_yaw, cmd_odom_stable_yaw)) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+    target_distance = mrs_lib::geometry::dist(vec2_t(cmd_odom_stable.pose.position.x, cmd_odom_stable.pose.position.y), vec2_t(brick_stable_x, brick_stable_y));
+    desired_yaw     = radians::dist(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
 
     double step_size = _aligning_placing_speed_ * _trajectory_dt_;
     int    n_steps   = int(floor(target_distance / step_size));
@@ -2885,7 +2896,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
     desired_vector             = desired_height - cmd_odom_stable.pose.position.z;
     target_distance            = fabs(desired_vector);
     direction                  = (desired_vector <= 0) ? -1 : 1;
-    desired_yaw                = fabs(mrs_lib::angleBetween(brick_stable_yaw, cmd_odom_stable_yaw)) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+    desired_yaw                = radians::dist(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
 
     double step_size = _placing_speed_ * _trajectory_dt_;
     int    n_steps   = int(floor(target_distance / step_size));
@@ -3408,7 +3419,7 @@ double BrickGrasping::alignedWithTarget(const double position_thr, const double 
 
     tar_x   = 0;
     tar_y   = 0;
-    tar_yaw = fabs(mrs_lib::angleBetween(0, focused_brick.uav_odom.yaw)) < (M_PI / 2.0) ? 0 : M_PI;
+    tar_yaw = radians::diff(0, focused_brick.uav_odom.yaw) < (M_PI / 2.0) ? 0 : M_PI;
 
     cur_x   = focused_brick.uav_odom.x;
     cur_y   = focused_brick.uav_odom.y;
@@ -3436,7 +3447,7 @@ double BrickGrasping::alignedWithTarget(const double position_thr, const double 
     position_error = sqrt(pow(cur_x - tar_x, 2) + pow(cur_y - tar_y, 2));
   }
 
-  double yaw_error = mrs_lib::angleBetween(cur_yaw, tar_yaw);
+  double yaw_error = radians::diff(cur_yaw, tar_yaw);
 
   ROS_INFO_THROTTLE(1.0, "[BrickGrasping]: position error during alignment: %.3f m", position_error);
 
@@ -3484,7 +3495,7 @@ double BrickGrasping::lastAlignmentCheck(void) {
 
     tar_x   = 0;
     tar_y   = 0;
-    tar_yaw = fabs(mrs_lib::angleBetween(0, focused_brick.uav_odom.yaw)) < (M_PI / 2.0) ? 0 : M_PI;
+    tar_yaw = radians::dist(0, focused_brick.uav_odom.yaw) < (M_PI / 2.0) ? 0 : M_PI;
 
     cur_x   = focused_brick.uav_odom.x;
     cur_y   = focused_brick.uav_odom.y;
@@ -3502,7 +3513,7 @@ double BrickGrasping::lastAlignmentCheck(void) {
 
   double position_error_x = abs(cur_x - tar_x);
   double position_error_y = abs(cur_y - tar_y);
-  double yaw_error        = mrs_lib::angleBetween(cur_yaw, tar_yaw);
+  double yaw_error        = radians::diff(cur_yaw, tar_yaw);
 
   if (_aligning2_grasping_alignment_criterion_ == ALIGNMENT_CRITERION_BRICK_DETECTION) {
     ROS_INFO_THROTTLE(1.0, "[BrickGrasping]: alignment error (vision mode): x=%.3f m, y=%.3f m, yaw=%.3f", position_error_x, position_error_y, yaw_error);
@@ -3526,8 +3537,8 @@ double BrickGrasping::distToObject() {
   auto odometry_main_stable = mrs_lib::get_mutexed(mutex_odometry_main_, odometry_main_stable_);
   auto focused_brick        = mrs_lib::get_mutexed(mutex_focused_brick_, focused_brick_);
 
-  double obj_dist =
-      mrs_lib::dist2d(odometry_main_stable.pose.position.x, odometry_main_stable.pose.position.y, focused_brick.states[POS_X], focused_brick.states[POS_Y]);
+  double obj_dist = mrs_lib::geometry::dist(vec2_t(odometry_main_stable.pose.position.x, odometry_main_stable.pose.position.y),
+                                            vec2_t(focused_brick.states[POS_X], focused_brick.states[POS_Y]));
 
   return obj_dist;
 }

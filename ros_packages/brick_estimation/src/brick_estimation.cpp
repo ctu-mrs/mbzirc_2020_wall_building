@@ -11,7 +11,8 @@
 #include <mrs_lib/param_loader.h>
 #include <mrs_lib/mutex.h>
 #include <mrs_lib/transformer.h>
-#include <mrs_lib/geometry_utils.h>
+#include <mrs_lib/geometry/cyclic.h>
+#include <mrs_lib/geometry/misc.h>
 
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
@@ -43,6 +44,16 @@
 #include "batch_visualizer.h"
 
 #include "tf/LinearMath/Transform.h"
+
+//}
+
+/* using //{ */
+
+using vec2_t = mrs_lib::geometry::vec_t<2>;
+using vec3_t = mrs_lib::geometry::vec_t<3>;
+
+using radians  = mrs_lib::geometry::radians;
+using sradians = mrs_lib::geometry::sradians;
 
 //}
 
@@ -685,7 +696,7 @@ void BrickEstimation::callbackBricks(const mbzirc_msgs::ObjectWithTypeArrayConst
           if (map_it->second.active) {
 
             // if the drones target is too close
-            if (mrs_lib::dist2d(map_it->second.target.position.x, map_it->second.target.position.y, detected_obj.x, detected_obj.y) <
+            if (mrs_lib::geometry::dist(vec2_t(map_it->second.target.position.x, map_it->second.target.position.y), vec2_t(detected_obj.x, detected_obj.y)) <
                 _exclude_drones_targets_radius_) {
 
               exclude_object = true;
@@ -693,8 +704,8 @@ void BrickEstimation::callbackBricks(const mbzirc_msgs::ObjectWithTypeArrayConst
             }
 
             // if the drone itself is too close
-            if (mrs_lib::dist2d(map_it->second.position.position.x, map_it->second.position.position.y, detected_obj.x, detected_obj.y) <
-                _exclude_drones_targets_radius_) {
+            if (mrs_lib::geometry::dist(vec2_t(map_it->second.position.position.x, map_it->second.position.position.y),
+                                        vec2_t(detected_obj.x, detected_obj.y)) < _exclude_drones_targets_radius_) {
 
               exclude_object = true;
               ROS_WARN_THROTTLE(1.0, "[BrickEstimation]: excluding other UAV targets from the measurement vector, other UAV is too close");
@@ -740,7 +751,7 @@ void BrickEstimation::callbackBricks(const mbzirc_msgs::ObjectWithTypeArrayConst
           if ((ros::Time::now() - area_it->stamp).toSec() < ban_area_timeout_) {
 
             // if the object lies within the area
-            if (mrs_lib::dist2d(area_it->x, area_it->y, detected_obj.x, detected_obj.y) < ban_area_radius_) {
+            if (mrs_lib::geometry::dist(vec2_t(area_it->x, area_it->y), vec2_t(detected_obj.x, detected_obj.y)) < ban_area_radius_) {
 
               exclude_object = true;
             }
@@ -794,7 +805,7 @@ void BrickEstimation::callbackBricks(const mbzirc_msgs::ObjectWithTypeArrayConst
     double object_dist = std::numeric_limits<double>::max();
 
     if (object_iter != object_list_.end()) {
-      object_dist = mrs_lib::dist2d(detected_obj.x, detected_obj.y, object_iter->statecov.x[0], object_iter->statecov.x[1]);
+      object_dist = mrs_lib::geometry::dist(vec2_t(detected_obj.x, detected_obj.y), vec2_t(object_iter->statecov.x[0], object_iter->statecov.x[1]));
     }
 
     // match not found, we should create fresh object
@@ -809,7 +820,8 @@ void BrickEstimation::callbackBricks(const mbzirc_msgs::ObjectWithTypeArrayConst
         double object_dist_alternative = std::numeric_limits<double>::max();
 
         if (object_iter_alternative != object_list_.end()) {
-          object_dist_alternative = mrs_lib::dist2d(detected_obj.x, detected_obj.y, object_iter_alternative->x, object_iter_alternative->y);
+          object_dist_alternative =
+              mrs_lib::geometry::dist(vec2_t(detected_obj.x, detected_obj.y), vec2_t(object_iter_alternative->x, object_iter_alternative->y));
         }
 
         if (object_dist_alternative < _object_distance_thr_) {
@@ -893,8 +905,8 @@ void BrickEstimation::callbackBricks(const mbzirc_msgs::ObjectWithTypeArrayConst
       // create the measurement vector
       VectorXd measurement = VectorXd::Zero(_n_measurements_);
 
-      double unwrapped_measurement = mrs_lib::unwrapAngle(detected_obj.yaw, object_iter->statecov.x[3]);
-      double yaw_difference        = mrs_lib::angleBetween(unwrapped_measurement, object_iter->statecov.x[3]);
+      double unwrapped_measurement = sradians::unwrap(detected_obj.yaw, object_iter->statecov.x[3]);
+      double yaw_difference        = sradians::diff(unwrapped_measurement, object_iter->statecov.x[3]);
 
       double disambiguated_measurement = unwrapped_measurement;
 
@@ -993,8 +1005,8 @@ void BrickEstimation::callbackBricks(const mbzirc_msgs::ObjectWithTypeArrayConst
 
         double yaw_odom_offset = 0;
 
-        double unwrapped_measurement = mrs_lib::unwrapAngle(msg->uav_odometries[i].yaw, object_iter->uav_odom.yaw);
-        double yaw_difference        = mrs_lib::angleBetween(unwrapped_measurement, object_iter->uav_odom.yaw);
+        double unwrapped_measurement = sradians::unwrap(msg->uav_odometries[i].yaw, object_iter->uav_odom.yaw);
+        double yaw_difference        = sradians::diff(unwrapped_measurement, object_iter->uav_odom.yaw);
 
         if (yaw_difference >= ((3.0 / 4.0) * M_PI)) {
 
@@ -1299,14 +1311,14 @@ std::list<ObjectHandler_t>::iterator BrickEstimation::findClosest(const double x
     // This helps to place the bricks on the right walls.
     if (_wall_angle_discrimination_) {
       if (it->type == OBJECT_WALL) {
-        double angle_between = mrs_lib::angleBetween(it->yaw, tf::getYaw(odometry_stable.pose.orientation));
+        double angle_between = sradians::diff(it->yaw, tf::getYaw(odometry_stable.pose.orientation));
         if (fabs(angle_between) > ((1.0 / 4.0) * M_PI) && fabs(angle_between) < ((3.0 / 4.0) * M_PI)) {
           continue;
         }
       }
     }
 
-    double distToObject = mrs_lib::dist2d(x, y, it->x, it->y);
+    double distToObject = mrs_lib::geometry::dist(vec2_t(x, y), vec2_t(it->x, it->y));
 
     if (distToObject < mindist) {
       mindist  = distToObject;
@@ -1352,20 +1364,20 @@ std::list<ObjectHandler_t>::iterator BrickEstimation::findClosestFusion(mbzirc_m
       continue;
     }
 
-    double distToObject = mrs_lib::dist2d(obj_in.x, obj_in.y, it->statecov.x[0], it->statecov.x[1]);
+    double distToObject = mrs_lib::geometry::dist(vec2_t(obj_in.x, obj_in.y), vec2_t(it->statecov.x[0], it->statecov.x[1]));
 
     if (obj_in.type == OBJECT_WALL) {
 
       Eigen::Vector2d center1 = Eigen::Vector2d(it->statecov.x[0], it->statecov.x[1]);
       Eigen::Vector2d center2 = Eigen::Vector2d(obj_in.x, obj_in.y);
 
-      double yaw_1 = mrs_lib::wrapAngle(it->statecov.x[3]);
-      double yaw_2 = mrs_lib::wrapAngle(obj_in.yaw);
+      double yaw_1 = sradians::wrap(it->statecov.x[3]);
+      double yaw_2 = sradians::wrap(obj_in.yaw);
 
       double len_1 = it->len;
       double len_2 = obj_in.len;
 
-      double angle_between = mrs_lib::angleBetween(yaw_1, yaw_2);
+      double angle_between = sradians::diff(yaw_1, yaw_2);
 
       Eigen::Vector2d end_1_1 = center1 + Eigen::Vector2d(cos(yaw_1) * len_1 / 2.0, sin(yaw_1) * len_1 / 2.0);
       Eigen::Vector2d end_1_2 = center1 + Eigen::Vector2d(cos(yaw_1 + M_PI) * len_1 / 2.0, sin(yaw_1 + M_PI) * len_1 / 2.0);
@@ -1714,16 +1726,16 @@ void BrickEstimation::iterate() {
           if (map_it->second.active) {
 
             // if the drones target is too close
-            if (mrs_lib::dist2d(map_it->second.target.position.x, map_it->second.target.position.y, obj_pointer->statecov.x[0], obj_pointer->statecov.x[1]) <
-                _exclude_drones_targets_radius_) {
+            if (mrs_lib::geometry::dist(vec2_t(map_it->second.target.position.x, map_it->second.target.position.y),
+                                        vec2_t(obj_pointer->statecov.x[0], obj_pointer->statecov.x[1])) < _exclude_drones_targets_radius_) {
 
               ROS_WARN_THROTTLE(1.0, "[BrickEstimation]: excluding objects from the map, other drone's target is too close");
               exclude_object = true;
             }
 
             // if the drone itself is too close
-            if (mrs_lib::dist2d(map_it->second.position.position.x, map_it->second.position.position.y, obj_pointer->statecov.x[0],
-                                obj_pointer->statecov.x[1]) < _exclude_drones_targets_radius_) {
+            if (mrs_lib::geometry::dist(vec2_t(map_it->second.position.position.x, map_it->second.position.position.y),
+                                        vec2_t(obj_pointer->statecov.x[0], obj_pointer->statecov.x[1])) < _exclude_drones_targets_radius_) {
 
               ROS_WARN_THROTTLE(1.0, "[BrickEstimation]: excluding objects from the map, another drone is too close");
               exclude_object = true;
@@ -1755,7 +1767,7 @@ void BrickEstimation::iterate() {
           if ((ros::Time::now() - area_it->stamp).toSec() < ban_area_timeout_) {
 
             // if the object lies within the area
-            if (mrs_lib::dist2d(area_it->x, area_it->y, obj_pointer->x, obj_pointer->y) < ban_area_radius_) {
+            if (mrs_lib::geometry::dist(vec2_t(area_it->x, area_it->y), vec2_t(obj_pointer->x, obj_pointer->y)) < ban_area_radius_) {
 
               exclude_object = true;
             }
@@ -1905,16 +1917,16 @@ void BrickEstimation::mapTimer([[maybe_unused]] const ros::TimerEvent &event) {
             if (map_it->second.active) {
 
               // if the drones target is too close
-              if (mrs_lib::dist2d(map_it->second.target.position.x, map_it->second.target.position.y, it1->statecov.x[0], it1->statecov.x[1]) <
-                  _exclude_drones_targets_radius_) {
+              if (mrs_lib::geometry::dist(vec2_t(map_it->second.target.position.x, map_it->second.target.position.y),
+                                          vec2_t(it1->statecov.x[0], it1->statecov.x[1])) < _exclude_drones_targets_radius_) {
 
                 ROS_WARN_THROTTLE(1.0, "[BrickEstimation]: excluding objects from the map, other drone's target is too close");
                 exclude_object = true;
               }
 
               // if the drone itself is too close
-              if (mrs_lib::dist2d(map_it->second.position.position.x, map_it->second.position.position.y, it1->statecov.x[0], it1->statecov.x[1]) <
-                  _exclude_drones_targets_radius_) {
+              if (mrs_lib::geometry::dist(vec2_t(map_it->second.position.position.x, map_it->second.position.position.y),
+                                          vec2_t(it1->statecov.x[0], it1->statecov.x[1])) < _exclude_drones_targets_radius_) {
 
                 ROS_WARN_THROTTLE(1.0, "[BrickEstimation]: excluding objects from the map, another drone is too close");
                 exclude_object = true;
@@ -1969,7 +1981,7 @@ void BrickEstimation::mapTimer([[maybe_unused]] const ros::TimerEvent &event) {
 
         if (it1->type != OBJECT_WALL) {
 
-          double object_dist = mrs_lib::dist2d(it1->statecov.x[0], it1->statecov.x[1], object_iter->statecov.x[0], object_iter->statecov.x[1]);
+          double object_dist = mrs_lib::geometry::dist(vec2_t(it1->statecov.x[0], it1->statecov.x[1]), vec2_t(object_iter->statecov.x[0], object_iter->statecov.x[1]));
 
           if (object_dist >= _object_distance_thr_) {
 
@@ -1983,7 +1995,7 @@ void BrickEstimation::mapTimer([[maybe_unused]] const ros::TimerEvent &event) {
         object_iter->statecov.x[0] = alpha * object_iter->statecov.x[0] + (1 - alpha) * it1->statecov.x[0];
         object_iter->statecov.x[1] = alpha * object_iter->statecov.x[1] + (1 - alpha) * it1->statecov.x[1];
         object_iter->statecov.x[2] = alpha * object_iter->statecov.x[2] + (1 - alpha) * it1->statecov.x[2];
-        object_iter->statecov.x[3] = mrs_lib::interpolateAngles(object_iter->statecov.x[3], it1->statecov.x[3], alpha);
+        object_iter->statecov.x[3] = sradians::interp(object_iter->statecov.x[3], it1->statecov.x[3], 1 - alpha);
 
         object_iter->len = alpha * object_iter->len + (1 - alpha) * it1->len;
 

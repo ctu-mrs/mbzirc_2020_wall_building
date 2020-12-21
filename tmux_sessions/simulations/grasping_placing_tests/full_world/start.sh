@@ -11,7 +11,7 @@ MY_PATH=`( cd "$MY_PATH" && pwd )`
 cd $MY_PATH
 
 # remove the old link
-rm -f .tmuxinator.yml
+rm .tmuxinator.yml
 
 # link the session file to .tmuxinator.yml
 ln session.yml .tmuxinator.yml

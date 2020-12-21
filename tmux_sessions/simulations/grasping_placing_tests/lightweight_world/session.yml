@@ -1,0 +1,90 @@
+name: simulation
+root: ./
+pre_window: export UAV_NAME=uav1; export RUN_TYPE=simulation; export UAV_TYPE=t650; export ODOMETRY_TYPE=gps; export WORLD_NAME=simulation; export SENSORS="garmin_down"
+startup_window: goto
+windows:
+  - status:
+      layout: even-vertical
+      panes:
+        - waitForRos; roslaunch mrs_uav_status status.launch
+  - gazebo:
+      layout: even-vertical
+      panes:
+        - waitForRos; roslaunch wall_simulation simulation.launch gui:=true world_name:=few_bricks
+  - rviz:
+      layout: tiled
+      panes:
+        - waitForOdometry; roslaunch wall_simulation rviz_uav1.launch
+        - waitForOdometry; roslaunch mrs_rviz_plugins rviz_interface.launch
+        - waitForOdometry; roslaunch mrs_rviz_plugins load_robot.launch
+        - waitForControl; roslaunch mrs_rviz_plugins load_robot.launch
+  - spawn:
+      layout: even-vertical
+      panes:
+        - waitForSimulation; rosservice call /mrs_drone_spawner/spawn "1 $UAV_TYPE --wall-challenge --pos_file `pwd`/pos1.yaml"
+  - control:
+      layout: even-vertical
+      panes:
+        - waitForOdometry; roslaunch mrs_uav_general core.launch config_control_manager:=./custom_configs/control_manager.yaml config_odometry:=./custom_configs/odometry.yaml config_mpc_tracker:=./custom_configs/mpc_tracker.yaml config_uav_manager:=./custom_configs/uav_manager.yaml config_gain_manager:=./custom_configs/gain_manager.yaml config_constraint_manager:=./custom_configs/constraint_manager.yaml WORLD_FILE:=./world.yaml
+  - loop:
+      layout: even-vertical
+      panes:
+        - 'read; while true; do rosservice call /$UAV_NAME/control_manager/goto "goal: [15.0, -17.0, 2.5, 1.0]"; sleep 2; rosservice call /$UAV_NAME/brick_grasping/start 0; sleep 2; rosservice call /$UAV_NAME/brick_grasping/stop; done'
+  - takeoff:
+      layout: even-vertical
+      panes:
+        #{ uav1
+        - 'waitForControl;
+          rosservice call /$UAV_NAME/control_manager/motors 1;
+          rosservice call /$UAV_NAME/mavros/cmd/arming 1;
+          rosservice call /$UAV_NAME/mavros/set_mode 0 offboard;
+          rosservice call /$UAV_NAME/uav_manager/takeoff;
+          waitForMpc;
+          sleep 1;
+          rosservice call /$UAV_NAME/control_manager/goto_altitude 3.0
+          '
+        #}
+  - brick_detection:
+      layout: even-vertical
+      panes:
+        - waitForControl; roslaunch brick_detection brick_detection.launch custom_config:=./custom_configs/brick_detection.yaml
+  - brick_estimation:
+      layout: even-vertical
+      panes:
+        - waitForControl; roslaunch brick_estimation brick_estimation.launch
+  - brick_grasping:
+      layout: even-vertical
+      panes:
+        - waitForControl; roslaunch brick_grasping brick_grasping.launch
+  - goto:
+      layout: even-vertical
+      panes:
+        - 'history -s rosservice call /$UAV_NAME/brick_grasping/start 5;
+          history -s rosservice call /$UAV_NAME/control_manager/goto \"goal: \[0.0, 2.0, 3.0, 0.0\]\";
+          history -s rosservice call /$UAV_NAME/brick_grasping/start 0;
+          history -s rosservice call /$UAV_NAME/control_manager/goto \"goal: \[15.0, -17.0, 2.5, 1.0\]\"'
+  - place:
+      layout: even-vertical
+      panes:
+        - 'history -s rosservice call /$UAV_NAME/brick_grasping/wall_place'
+  - simulated_magnet:
+      layout: even-vertical
+      panes:
+        - waitForControl; roslaunch simulated_magnet simulation.launch
+  - fuse:
+      layout: even-vertical
+      panes:
+        - 'history -s rosservice call /$UAV_NAME/odometry/change_estimator_type_string BRICK'
+  - logitech_joystick:
+      layout: even-vertical
+      panes:
+        - waitForOdometry; roslaunch mrs_uav_general logitech_joystick.launch
+  - gazebo_camera_follow:
+      layout: even-vertical
+      panes:
+        - waitForOdometry; gz camera -c gzclient_camera -f uav1; history -s gz camera -c gzclient_camera -f uav1
+        - waitForControl; sleep 4; ~/.i3/layout_manager.sh layout.json
+  - roscore:
+      layout: even-vertical
+      panes:
+        - roscore
