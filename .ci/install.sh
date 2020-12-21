@@ -6,6 +6,8 @@ distro=`lsb_release -r | awk '{ print $2 }'`
 [ "$distro" = "18.04" ] && ROS_DISTRO="melodic"
 [ "$distro" = "20.04" ] && ROS_DISTRO="noetic"
 
+MY_PATH=`pwd`
+
 echo "Starting install preparation"
 
 sudo apt-get -y update -qq
@@ -41,8 +43,6 @@ git clone https://github.com/ctu-mrs/mrs_gazebo_extras_resources
 cd mrs_gazebo_extras_resources
 
 sudo apt-get -y install ros-$ROS_DISTRO-flexbe-behavior-engine
-
-MY_PATH=`dirname $TRAVIS_BUILD_DIR`
 
 mkdir -p ~/catkin_ws/src
 cd ~/catkin_ws/src
