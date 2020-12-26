@@ -1289,6 +1289,14 @@ std::list<ObjectHandler_t>::iterator BrickEstimation::findClosest(const double x
 
   auto odometry_stable = mrs_lib::get_mutexed(mutex_odometry_, odometry_stable_);
 
+  double uav_heading = 0;
+
+  try {
+    uav_heading = mrs_lib::AttitudeConverter(odometry_stable.pose.orientation).getHeading();
+  }
+  catch (...) {
+  }
+
   std::list<ObjectHandler_t>::iterator obj_iter = object_list_.end();
 
   double mindist = std::numeric_limits<double>::max();
@@ -1311,7 +1319,7 @@ std::list<ObjectHandler_t>::iterator BrickEstimation::findClosest(const double x
     // This helps to place the bricks on the right walls.
     if (_wall_angle_discrimination_) {
       if (it->type == OBJECT_WALL) {
-        double angle_between = sradians::diff(it->yaw, tf::getYaw(odometry_stable.pose.orientation));
+        double angle_between = fabs(radians::diff(it->yaw, uav_heading));
         if (fabs(angle_between) > ((1.0 / 4.0) * M_PI) && fabs(angle_between) < ((3.0 / 4.0) * M_PI)) {
           continue;
         }
@@ -1981,7 +1989,8 @@ void BrickEstimation::mapTimer([[maybe_unused]] const ros::TimerEvent &event) {
 
         if (it1->type != OBJECT_WALL) {
 
-          double object_dist = mrs_lib::geometry::dist(vec2_t(it1->statecov.x[0], it1->statecov.x[1]), vec2_t(object_iter->statecov.x[0], object_iter->statecov.x[1]));
+          double object_dist =
+              mrs_lib::geometry::dist(vec2_t(it1->statecov.x[0], it1->statecov.x[1]), vec2_t(object_iter->statecov.x[0], object_iter->statecov.x[1]));
 
           if (object_dist >= _object_distance_thr_) {
 

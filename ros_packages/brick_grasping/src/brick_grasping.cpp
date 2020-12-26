@@ -28,6 +28,7 @@
 #include <mrs_lib/median_filter.h>
 #include <mrs_lib/geometry/misc.h>
 #include <mrs_lib/geometry/cyclic.h>
+#include <mrs_lib/quadratic_thrust_model.h>
 
 #include <mrs_msgs/Vec4.h>
 #include <mrs_msgs/TrajectoryReference.h>
@@ -244,7 +245,7 @@ private:
   ros::Publisher publisher_debug_trajectory_;
   ros::Publisher publisher_current_target_;
   ros::Publisher publisher_current_target_uav_odom_;
-  ros::Publisher publisher_current_target_uav_yaw_;
+  ros::Publisher publisher_current_target_uav_heading_;
   ros::Publisher publisher_current_target_debug_;
   ros::Publisher publisher_grasping_result_;
 
@@ -542,7 +543,7 @@ private:
   double getMinHeight();
   double original_min_height_ = 0;
 
-  double alignedWithTarget(const double position_thr, const double yaw_thr, Alignment_t mode);
+  double alignedWithTarget(const double position_thr, const double heading_thr, Alignment_t mode);
   double lastAlignmentCheck(void);
 
   // | ---------------------- action server --------------------- |
@@ -605,9 +606,8 @@ public:
   mrs_msgs::TrajectoryReference createTrajectory(int trajectoryType);
 
 private:
-  double _hover_thrust_a_;
-  double _hover_thrust_b_;
-  double _g_;
+  double                                         _g_;
+  mrs_lib::quadratic_thrust_model::MotorParams_t _motor_params_;
 
 private:
   void                      callbackAttitudeCommand(const mrs_msgs::AttitudeCommandConstPtr &msg);
@@ -823,8 +823,9 @@ void BrickGrasping::onInit() {
 
   param_loader.loadParam("uav_mass", _uav_mass_);
   param_loader.loadParam("g", _g_);
-  param_loader.loadParam("hover_thrust/a", _hover_thrust_a_);
-  param_loader.loadParam("hover_thrust/b", _hover_thrust_b_);
+  param_loader.loadParam("motor_params/a", _motor_params_.A);
+  param_loader.loadParam("motor_params/b", _motor_params_.B);
+  param_loader.loadParam("motor_params/n_motors", _motor_params_.n_motors);
   param_loader.loadParam("simulation", _simulation_);
 
   param_loader.loadParam("gripper_filter/buffer_size", _gripper_filter_buffer_size_);
@@ -843,15 +844,15 @@ void BrickGrasping::onInit() {
   lost_alignment_counter  = 0;
   repeat_grasping_counter = 0;
 
-  publisher_trajectory_              = nh_.advertise<mrs_msgs::TrajectoryReference>("desired_trajectory_out", 1);
-  publisher_diagnostics_             = nh_.advertise<mbzirc_msgs::BrickGraspingDiagnostics>("diagnostics_out", 1);
-  publisher_current_target_          = nh_.advertise<mbzirc_msgs::ObjectWithType>("current_target_out", 1);
-  publisher_current_target_uav_odom_ = nh_.advertise<geometry_msgs::PoseStamped>("current_target_uav_odom_out", 1);
-  publisher_current_target_uav_yaw_  = nh_.advertise<mrs_msgs::Float64Stamped>("current_target_uav_yaw_out", 1);
-  publisher_current_target_debug_    = nh_.advertise<geometry_msgs::PoseStamped>("current_target_debug_out", 1);
-  publisher_grasping_result_         = nh_.advertise<std_msgs::Int32>("grasping_result_out", 1);
-  publisher_relative_position_       = nh_.advertise<mrs_msgs::ReferenceStamped>("desired_relative_position_out", 1);
-  publisher_debug_trajectory_        = nh_.advertise<geometry_msgs::PoseArray>("debug_trajectory_out", 1);
+  publisher_trajectory_                 = nh_.advertise<mrs_msgs::TrajectoryReference>("desired_trajectory_out", 1);
+  publisher_diagnostics_                = nh_.advertise<mbzirc_msgs::BrickGraspingDiagnostics>("diagnostics_out", 1);
+  publisher_current_target_             = nh_.advertise<mbzirc_msgs::ObjectWithType>("current_target_out", 1);
+  publisher_current_target_uav_odom_    = nh_.advertise<geometry_msgs::PoseStamped>("current_target_uav_odom_out", 1);
+  publisher_current_target_uav_heading_ = nh_.advertise<mrs_msgs::Float64Stamped>("current_target_uav_heading_out", 1);
+  publisher_current_target_debug_       = nh_.advertise<geometry_msgs::PoseStamped>("current_target_debug_out", 1);
+  publisher_grasping_result_            = nh_.advertise<std_msgs::Int32>("grasping_result_out", 1);
+  publisher_relative_position_          = nh_.advertise<mrs_msgs::ReferenceStamped>("desired_relative_position_out", 1);
+  publisher_debug_trajectory_           = nh_.advertise<geometry_msgs::PoseArray>("debug_trajectory_out", 1);
 
   if (_simulation_) {
 
@@ -2296,23 +2297,25 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
   auto [cmd_odom_stable, cmd_odom_brick] = mrs_lib::get_mutexed(mutex_cmd_odom_, cmd_odom_stable_, cmd_odom_brick_);
   auto focused_brick                     = mrs_lib::get_mutexed(mutex_focused_brick_, focused_brick_);
 
-  double brick_stable_x   = focused_brick.states[POS_X];
-  double brick_stable_y   = focused_brick.states[POS_Y];
-  double brick_stable_z   = focused_brick.states[POS_Z];
-  double brick_stable_yaw = focused_brick.yaw;
+  double brick_stable_x       = focused_brick.states[POS_X];
+  double brick_stable_y       = focused_brick.states[POS_Y];
+  double brick_stable_z       = focused_brick.states[POS_Z];
+  double brick_stable_heading = focused_brick.yaw;
 
-  double cmd_odom_brick_roll, cmd_odom_brick_pitch, cmd_odom_brick_yaw;
-  {
-    geometry_msgs::Quaternion quat = cmd_odom_brick.pose.orientation;
-    tf::Quaternion            qt(quat.x, quat.y, quat.z, quat.w);
-    tf::Matrix3x3(qt).getRPY(cmd_odom_brick_roll, cmd_odom_brick_pitch, cmd_odom_brick_yaw);
+  double cmd_odom_brick_heading = 0;
+
+  try {
+    cmd_odom_brick_heading = mrs_lib::AttitudeConverter(cmd_odom_brick.pose.orientation).getHeading();
+  }
+  catch (...) {
   }
 
-  double cmd_odom_stable_roll, cmd_odom_stable_pitch, cmd_odom_stable_yaw;
-  {
-    geometry_msgs::Quaternion quat = cmd_odom_stable.pose.orientation;
-    tf::Quaternion            qt(quat.x, quat.y, quat.z, quat.w);
-    tf::Matrix3x3(qt).getRPY(cmd_odom_stable_roll, cmd_odom_stable_pitch, cmd_odom_stable_yaw);
+  double cmd_odom_stable_heading = 0;
+
+  try {
+    cmd_odom_stable_heading = mrs_lib::AttitudeConverter(cmd_odom_stable.pose.orientation).getHeading();
+  }
+  catch (...) {
   }
 
   // fcu offset
@@ -2333,13 +2336,13 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
 
   if (trajectoryType == ALIGN_TRAJECTORY) {
 
-    double target_heading, target_distance, desired_yaw;
+    double target_heading, target_distance, desired_heading;
 
     trajectory.header.stamp    = cmd_odom_stable.header.stamp;
     trajectory.header.frame_id = "stable_origin";
     target_heading             = atan2(brick_stable_y - cmd_odom_stable.pose.position.y, brick_stable_x - cmd_odom_stable.pose.position.x);
     target_distance = mrs_lib::geometry::dist(vec2_t(cmd_odom_stable.pose.position.x, cmd_odom_stable.pose.position.y), vec2_t(brick_stable_x, brick_stable_y));
-    desired_yaw     = radians::dist(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+    desired_heading = fabs(radians::dist(brick_stable_heading, cmd_odom_stable_heading)) < (M_PI / 2.0) ? brick_stable_heading : brick_stable_heading + M_PI;
 
     /* double desired_height = _aligning_height_ > cmd_odom_stable.pose.position.z ? cmd_odom_stable.pose.position.z : _aligning_height_; */
     double desired_height = brick_stable_z + _aligning_height_;
@@ -2354,7 +2357,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = cmd_odom_stable.pose.position.x;
       point.position.y = cmd_odom_stable.pose.position.y;
       point.position.z = desired_height;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2367,7 +2370,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = trajectory.points.back().position.x + cos(target_heading) * step_size;
       point.position.y = trajectory.points.back().position.y + sin(target_heading) * step_size;
       point.position.z = desired_height;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2379,7 +2382,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = brick_stable_x;
       point.position.y = brick_stable_y;
       point.position.z = desired_height;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
 
@@ -2405,7 +2408,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
 
     trajectory.header.stamp = cmd_odom_stable.header.stamp;
 
-    double target_distance, direction, desired_height, desired_vector, desired_yaw;
+    double target_distance, direction, desired_height, desired_vector, desired_heading;
 
     if (_aligning_odometry_lateral_ == "brick") {
       trajectory.header.stamp    = cmd_odom_brick.header.stamp;
@@ -2414,7 +2417,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       desired_vector             = desired_height - cmd_odom_brick.pose.position.z;
       target_distance            = fabs(desired_vector);
       direction                  = (desired_vector <= 0) ? -1 : 1;
-      desired_yaw                = radians::diff(0.0, cmd_odom_brick_yaw) < (M_PI / 2.0) ? 0 : M_PI;
+      desired_heading            = fabs(radians::diff(0.0, cmd_odom_brick_heading)) < (M_PI / 2.0) ? 0 : M_PI;
     } else {
       trajectory.header.stamp    = cmd_odom_stable.header.stamp;
       trajectory.header.frame_id = "stable_origin";
@@ -2423,7 +2426,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       desired_vector  = desired_height - cmd_odom_stable.pose.position.z;
       target_distance = fabs(desired_vector);
       direction       = (desired_vector <= 0) ? -1 : 1;
-      desired_yaw     = radians::diff(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+      desired_heading = fabs(radians::diff(brick_stable_heading, cmd_odom_stable_heading)) < (M_PI / 2.0) ? brick_stable_heading : brick_stable_heading + M_PI;
     }
 
     double step_size = _descending_speed_ * _trajectory_dt_;
@@ -2443,7 +2446,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
         point.position.z = cmd_odom_stable.pose.position.z;
       }
 
-      point.heading = desired_yaw;
+      point.heading = desired_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2463,7 +2466,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
         }
 
         point.position.z = trajectory.points.back().position.z + direction * step_size;
-        point.heading    = desired_yaw;
+        point.heading    = desired_heading;
 
         trajectory.points.push_back(point);
       }
@@ -2482,7 +2485,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       }
 
       point.position.z = _descending_height_;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
 
@@ -2524,7 +2527,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = cmd_odom_stable.pose.position.x;
       point.position.y = cmd_odom_stable.pose.position.y;
       point.position.z = cmd_odom_stable.pose.position.z;
-      point.heading    = cmd_odom_stable_yaw;
+      point.heading    = cmd_odom_stable_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2538,7 +2541,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
         point.position.x = cmd_odom_stable.pose.position.x;
         point.position.y = cmd_odom_stable.pose.position.y;
         point.position.z = trajectory.points.back().position.z + direction * step_size;
-        point.heading    = cmd_odom_stable_yaw;
+        point.heading    = cmd_odom_stable_heading;
 
         trajectory.points.push_back(point);
       }
@@ -2551,7 +2554,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       current_target_.reference.position.x = cmd_odom_stable.pose.position.x;
       current_target_.reference.position.y = cmd_odom_stable.pose.position.y;
       current_target_.reference.position.z = desired_height;
-      current_target_.reference.heading    = cmd_odom_stable_yaw;
+      current_target_.reference.heading    = cmd_odom_stable_heading;
     }
 
     return trajectory;
@@ -2581,7 +2584,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = cmd_odom_stable.pose.position.x;
       point.position.y = cmd_odom_stable.pose.position.y;
       point.position.z = cmd_odom_stable.pose.position.z;
-      point.heading    = cmd_odom_stable_yaw;
+      point.heading    = cmd_odom_stable_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2595,7 +2598,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
         point.position.x = cmd_odom_stable.pose.position.x;
         point.position.y = cmd_odom_stable.pose.position.y;
         point.position.z = trajectory.points.back().position.z + direction * step_size;
-        point.heading    = cmd_odom_stable_yaw;
+        point.heading    = cmd_odom_stable_heading;
 
         trajectory.points.push_back(point);
       }
@@ -2608,7 +2611,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       current_target_.reference.position.x = cmd_odom_stable.pose.position.x;
       current_target_.reference.position.y = cmd_odom_stable.pose.position.y;
       current_target_.reference.position.z = desired_height;
-      current_target_.reference.heading    = cmd_odom_stable_yaw;
+      current_target_.reference.heading    = cmd_odom_stable_heading;
     }
 
     return trajectory;
@@ -2619,16 +2622,16 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
 
   } else if (trajectoryType == GRASPING_TRAJECTORY) {
 
-    double desired_yaw;
+    double desired_heading;
 
     if (_aligning_odometry_lateral_ == "brick") {
       trajectory.header.stamp    = cmd_odom_brick.header.stamp;
       trajectory.header.frame_id = "brick_origin";
-      desired_yaw                = radians::diff(0.0, cmd_odom_brick_yaw) < (M_PI / 2.0) ? 0 : M_PI;
+      desired_heading            = fabs(radians::diff(0.0, cmd_odom_brick_heading)) < (M_PI / 2.0) ? 0 : M_PI;
     } else {
       trajectory.header.stamp    = cmd_odom_stable.header.stamp;
       trajectory.header.frame_id = "stable_origin";
-      desired_yaw                = radians::diff(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+      desired_heading = fabs(radians::diff(brick_stable_heading, cmd_odom_stable_heading)) < (M_PI / 2.0) ? brick_stable_heading : brick_stable_heading + M_PI;
     }
 
     auto res = transformer_.transformSingle(trajectory.header.frame_id, fcu_offset);
@@ -2666,7 +2669,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
         point.position.z = cmd_odom_stable.pose.position.z;
       }
 
-      point.heading = desired_yaw;
+      point.heading = desired_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2686,7 +2689,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
         }
 
         point.position.z = trajectory.points.back().position.z + direction * step_size;
-        point.heading    = desired_yaw;
+        point.heading    = desired_heading;
 
         trajectory.points.push_back(point);
       }
@@ -2705,7 +2708,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       }
 
       point.position.z = cmd_odom_stable.pose.position.z + _grasping_height_;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2718,7 +2721,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
 
   } else if (trajectoryType == REPEAT_TRAJECTORY) {
 
-    double target_distance, desired_height, desired_vector, direction, desired_yaw;
+    double target_distance, desired_height, desired_vector, direction, desired_heading;
 
     trajectory.header.stamp    = cmd_odom_stable.header.stamp;
     trajectory.header.frame_id = "stable_origin";
@@ -2726,7 +2729,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
     desired_vector             = desired_height - cmd_odom_stable.pose.position.z;
     target_distance            = fabs(desired_vector);
     direction                  = (desired_vector <= 0) ? -1 : 1;
-    desired_yaw                = radians::diff(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+    desired_heading = fabs(radians::diff(brick_stable_heading, cmd_odom_stable_heading)) < (M_PI / 2.0) ? brick_stable_heading : brick_stable_heading + M_PI;
 
     double step_size = _repeating_speed_ * _trajectory_dt_;
     int    n_steps   = int(floor(target_distance / step_size));
@@ -2738,7 +2741,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = brick_stable_x;
       point.position.y = brick_stable_y;
       point.position.z = cmd_odom_stable.pose.position.z;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2752,7 +2755,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
         point.position.x = brick_stable_x;
         point.position.y = brick_stable_y;
         point.position.z = trajectory.points.back().position.z + direction * step_size;
-        point.heading    = desired_yaw;
+        point.heading    = desired_heading;
 
         trajectory.points.push_back(point);
       }
@@ -2765,7 +2768,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = brick_stable_x;
       point.position.y = brick_stable_y;
       point.position.z = _repeating_height_;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
 
@@ -2798,7 +2801,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
     point.position.x = cmd_odom_stable.pose.position.x;
     point.position.y = cmd_odom_stable.pose.position.y;
     point.position.z = desired_height;
-    point.heading    = cmd_odom_stable_yaw;
+    point.heading    = cmd_odom_stable_heading;
 
     trajectory.points.push_back(point);
 
@@ -2820,14 +2823,14 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
 
   } else if (trajectoryType == ALIGN_TO_PLACE_TRAJECTORY) {
 
-    double target_heading, target_distance, desired_yaw, desired_height;
+    double target_heading, target_distance, desired_heading, desired_height;
 
     trajectory.header.stamp    = cmd_odom_stable.header.stamp;
     trajectory.header.frame_id = "stable_origin";
     target_heading             = atan2(brick_stable_y - cmd_odom_stable.pose.position.y, brick_stable_x - cmd_odom_stable.pose.position.x);
     desired_height             = _aligning_placing_height_;
     target_distance = mrs_lib::geometry::dist(vec2_t(cmd_odom_stable.pose.position.x, cmd_odom_stable.pose.position.y), vec2_t(brick_stable_x, brick_stable_y));
-    desired_yaw     = radians::dist(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+    desired_heading = fabs(radians::dist(brick_stable_heading, cmd_odom_stable_heading)) < (M_PI / 2.0) ? brick_stable_heading : brick_stable_heading + M_PI;
 
     double step_size = _aligning_placing_speed_ * _trajectory_dt_;
     int    n_steps   = int(floor(target_distance / step_size));
@@ -2839,7 +2842,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = cmd_odom_stable.pose.position.x;
       point.position.y = cmd_odom_stable.pose.position.y;
       point.position.z = desired_height;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2852,7 +2855,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = trajectory.points.back().position.x + cos(target_heading) * step_size;
       point.position.y = trajectory.points.back().position.y + sin(target_heading) * step_size;
       point.position.z = desired_height;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2864,7 +2867,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = brick_stable_x;
       point.position.y = brick_stable_y;
       point.position.z = desired_height;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
 
@@ -2888,7 +2891,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
 
   } else if (trajectoryType == PLACING_TRAJECTORY) {
 
-    double desired_height, desired_vector, target_distance, direction, desired_yaw;
+    double desired_height, desired_vector, target_distance, direction, desired_heading;
 
     trajectory.header.stamp    = cmd_odom_stable.header.stamp;
     trajectory.header.frame_id = "stable_origin";
@@ -2896,7 +2899,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
     desired_vector             = desired_height - cmd_odom_stable.pose.position.z;
     target_distance            = fabs(desired_vector);
     direction                  = (desired_vector <= 0) ? -1 : 1;
-    desired_yaw                = radians::dist(brick_stable_yaw, cmd_odom_stable_yaw) < (M_PI / 2.0) ? brick_stable_yaw : brick_stable_yaw + M_PI;
+    desired_heading = fabs(radians::dist(brick_stable_heading, cmd_odom_stable_heading)) < (M_PI / 2.0) ? brick_stable_heading : brick_stable_heading + M_PI;
 
     double step_size = _placing_speed_ * _trajectory_dt_;
     int    n_steps   = int(floor(target_distance / step_size));
@@ -2908,7 +2911,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = brick_stable_x;
       point.position.y = brick_stable_y;
       point.position.z = cmd_odom_stable.pose.position.z;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2922,7 +2925,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
         point.position.x = brick_stable_x;
         point.position.y = brick_stable_y;
         point.position.z = trajectory.points.back().position.z + direction * step_size;
-        point.heading    = desired_yaw;
+        point.heading    = desired_heading;
 
         trajectory.points.push_back(point);
       }
@@ -2935,7 +2938,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = brick_stable_x;
       point.position.y = brick_stable_y;
       point.position.z = desired_height;
-      point.heading    = desired_yaw;
+      point.heading    = desired_heading;
 
       trajectory.points.push_back(point);
 
@@ -2975,7 +2978,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = cmd_odom_stable.pose.position.x;
       point.position.y = cmd_odom_stable.pose.position.y;
       point.position.z = cmd_odom_stable.pose.position.z;
-      point.heading    = cmd_odom_stable_yaw;
+      point.heading    = cmd_odom_stable_heading;
 
       trajectory.points.push_back(point);
     }
@@ -2989,7 +2992,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
         point.position.x = cmd_odom_stable.pose.position.x;
         point.position.y = cmd_odom_stable.pose.position.y;
         point.position.z = trajectory.points.back().position.z + direction * step_size;
-        point.heading    = cmd_odom_stable_yaw;
+        point.heading    = cmd_odom_stable_heading;
 
         trajectory.points.push_back(point);
       }
@@ -3002,7 +3005,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       point.position.x = cmd_odom_stable.pose.position.x;
       point.position.y = cmd_odom_stable.pose.position.y;
       point.position.z = cmd_odom_stable.pose.position.z + _ground_placing_height_;
-      point.heading    = cmd_odom_stable_yaw;
+      point.heading    = cmd_odom_stable_heading;
 
       trajectory.points.push_back(point);
 
@@ -3386,17 +3389,18 @@ bool BrickGrasping::isHighWind() {
 
 /* alignedWithTarget() //{ */
 
-double BrickGrasping::alignedWithTarget(const double position_thr, const double yaw_thr, Alignment_t mode) {
+double BrickGrasping::alignedWithTarget(const double position_thr, const double heading_thr, Alignment_t mode) {
 
   auto current_target       = mrs_lib::get_mutexed(mutex_current_target_, current_target_);
   auto odometry_main_stable = mrs_lib::get_mutexed(mutex_odometry_main_, odometry_main_stable_);
   auto focused_brick        = mrs_lib::get_mutexed(mutex_focused_brick_, focused_brick_);
 
-  double cur_roll, cur_pitch, cur_yaw;
-  {
-    geometry_msgs::Quaternion quat = odometry_main_stable.pose.orientation;
-    tf::Quaternion            qt(quat.x, quat.y, quat.z, quat.w);
-    tf::Matrix3x3(qt).getRPY(cur_roll, cur_pitch, cur_yaw);
+  double cur_heading = 0;
+
+  try {
+    cur_heading = mrs_lib::AttitudeConverter(odometry_main_stable.pose.orientation).getHeading();
+  }
+  catch (...) {
   }
 
   // transform current target to stable origin
@@ -3412,27 +3416,27 @@ double BrickGrasping::alignedWithTarget(const double position_thr, const double 
     return false;
   }
 
-  double tar_x, tar_y, tar_z, tar_yaw;
+  double tar_x, tar_y, tar_z, tar_heading;
   double cur_x, cur_y, cur_z;
 
   if (current_state_ == ALIGN2_GRASP_STATE && _aligning2_grasping_alignment_criterion_ == ALIGNMENT_CRITERION_BRICK_DETECTION) {
 
-    tar_x   = 0;
-    tar_y   = 0;
-    tar_yaw = radians::diff(0, focused_brick.uav_odom.yaw) < (M_PI / 2.0) ? 0 : M_PI;
+    tar_x       = 0;
+    tar_y       = 0;
+    tar_heading = fabs(radians::diff(0, focused_brick.uav_odom.yaw)) < (M_PI / 2.0) ? 0 : M_PI;
 
-    cur_x   = focused_brick.uav_odom.x;
-    cur_y   = focused_brick.uav_odom.y;
-    cur_yaw = focused_brick.uav_odom.yaw;
+    cur_x       = focused_brick.uav_odom.x;
+    cur_y       = focused_brick.uav_odom.y;
+    cur_heading = focused_brick.uav_odom.yaw;
 
     mode = MODE_2D;
 
   } else {
 
-    tar_x   = current_target_stable.reference.position.x;
-    tar_y   = current_target_stable.reference.position.y;
-    tar_z   = current_target_stable.reference.position.z;
-    tar_yaw = current_target_stable.reference.heading;
+    tar_x       = current_target_stable.reference.position.x;
+    tar_y       = current_target_stable.reference.position.y;
+    tar_z       = current_target_stable.reference.position.z;
+    tar_heading = current_target_stable.reference.heading;
 
     cur_x = odometry_main_stable.pose.position.x;
     cur_y = odometry_main_stable.pose.position.y;
@@ -3447,11 +3451,11 @@ double BrickGrasping::alignedWithTarget(const double position_thr, const double 
     position_error = sqrt(pow(cur_x - tar_x, 2) + pow(cur_y - tar_y, 2));
   }
 
-  double yaw_error = radians::diff(cur_yaw, tar_yaw);
+  double heading_error = fabs(radians::diff(cur_heading, tar_heading));
 
   ROS_INFO_THROTTLE(1.0, "[BrickGrasping]: position error during alignment: %.3f m", position_error);
 
-  if (position_error < position_thr && yaw_error < yaw_thr) {
+  if (position_error < position_thr && heading_error < heading_thr) {
     return true;
   } else {
     return false;
@@ -3468,14 +3472,15 @@ double BrickGrasping::lastAlignmentCheck(void) {
   auto odometry_main_brick = mrs_lib::get_mutexed(mutex_odometry_main_, odometry_main_brick_);
   auto focused_brick       = mrs_lib::get_mutexed(mutex_focused_brick_, focused_brick_);
 
-  double tar_x, tar_y, tar_yaw;
+  double tar_x, tar_y, tar_heading;
   double cur_x, cur_y;
 
-  double cur_roll, cur_pitch, cur_yaw;
-  {
-    geometry_msgs::Quaternion quat = odometry_main_brick.pose.orientation;
-    tf::Quaternion            qt(quat.x, quat.y, quat.z, quat.w);
-    tf::Matrix3x3(qt).getRPY(cur_roll, cur_pitch, cur_yaw);
+  double cur_heading = 0;
+
+  try {
+    cur_heading = mrs_lib::AttitudeConverter(odometry_main_brick.pose.orientation).getHeading();
+  }
+  catch (...) {
   }
 
   // transform current target to brick origin
@@ -3493,19 +3498,19 @@ double BrickGrasping::lastAlignmentCheck(void) {
 
   if (_aligning2_grasping_alignment_criterion_ == ALIGNMENT_CRITERION_BRICK_DETECTION) {
 
-    tar_x   = 0;
-    tar_y   = 0;
-    tar_yaw = radians::dist(0, focused_brick.uav_odom.yaw) < (M_PI / 2.0) ? 0 : M_PI;
+    tar_x       = 0;
+    tar_y       = 0;
+    tar_heading = fabs(radians::dist(0, focused_brick.uav_odom.yaw)) < (M_PI / 2.0) ? 0 : M_PI;
 
-    cur_x   = focused_brick.uav_odom.x;
-    cur_y   = focused_brick.uav_odom.y;
-    cur_yaw = focused_brick.uav_odom.yaw;
+    cur_x       = focused_brick.uav_odom.x;
+    cur_y       = focused_brick.uav_odom.y;
+    cur_heading = focused_brick.uav_odom.yaw;
 
   } else {
 
-    tar_x   = current_target_brick_frame.reference.position.x;
-    tar_y   = current_target_brick_frame.reference.position.y;
-    tar_yaw = current_target_brick_frame.reference.heading;
+    tar_x       = current_target_brick_frame.reference.position.x;
+    tar_y       = current_target_brick_frame.reference.position.y;
+    tar_heading = current_target_brick_frame.reference.heading;
 
     cur_x = odometry_main_brick.pose.position.x;
     cur_y = odometry_main_brick.pose.position.y;
@@ -3513,15 +3518,17 @@ double BrickGrasping::lastAlignmentCheck(void) {
 
   double position_error_x = abs(cur_x - tar_x);
   double position_error_y = abs(cur_y - tar_y);
-  double yaw_error        = radians::diff(cur_yaw, tar_yaw);
+  double heading_error    = fabs(radians::diff(cur_heading, tar_heading));
 
   if (_aligning2_grasping_alignment_criterion_ == ALIGNMENT_CRITERION_BRICK_DETECTION) {
-    ROS_INFO_THROTTLE(1.0, "[BrickGrasping]: alignment error (vision mode): x=%.3f m, y=%.3f m, yaw=%.3f", position_error_x, position_error_y, yaw_error);
+    ROS_INFO_THROTTLE(1.0, "[BrickGrasping]: alignment error (vision mode): x=%.3f m, y=%.3f m, heading=%.3f", position_error_x, position_error_y,
+                      heading_error);
   } else {
-    ROS_INFO_THROTTLE(1.0, "[BrickGrasping]: alignment error (control mode): x=%.3f m, y=%.3f m, yaw=%.3f", position_error_x, position_error_y, yaw_error);
+    ROS_INFO_THROTTLE(1.0, "[BrickGrasping]: alignment error (control mode): x=%.3f m, y=%.3f m, heading=%.3f", position_error_x, position_error_y,
+                      heading_error);
   }
 
-  if (position_error_x < aligning2_current_x_crit_ && position_error_y < aligning2_current_y_crit_ && yaw_error < 0.1) {
+  if (position_error_x < aligning2_current_x_crit_ && position_error_y < aligning2_current_y_crit_ && heading_error < 0.1) {
     return true;
   } else {
     return false;
@@ -3580,11 +3587,12 @@ void BrickGrasping::stateMachineTimer([[maybe_unused]] const ros::TimerEvent &ev
   auto attitude_command = mrs_lib::get_mutexed(mutex_attitude_command_, attitude_command_);
   auto cmd_odom_stable  = mrs_lib::get_mutexed(mutex_odometry_main_, cmd_odom_stable_);
 
-  double cmd_odom_stable_roll, cmd_odom_stable_pitch, cmd_odom_stable_yaw;
-  {
-    geometry_msgs::Quaternion quat = cmd_odom_stable.pose.orientation;
-    tf::Quaternion            qt(quat.x, quat.y, quat.z, quat.w);
-    tf::Matrix3x3(qt).getRPY(cmd_odom_stable_roll, cmd_odom_stable_pitch, cmd_odom_stable_yaw);
+  double cmd_odom_stable_heading = 0;
+
+  try {
+    cmd_odom_stable_heading = mrs_lib::AttitudeConverter(cmd_odom_stable.pose.orientation).getHeading();
+  }
+  catch (...) {
   }
 
   auto focused_brick = mrs_lib::get_mutexed(mutex_focused_brick_, focused_brick_);
@@ -3840,7 +3848,7 @@ void BrickGrasping::stateMachineTimer([[maybe_unused]] const ros::TimerEvent &ev
       // | --------------------- thrust limiter --------------------- |
       if (_grasping_thrust_limiter_enabled_) {
 
-        double thrust_mass_estimate = pow((attitude_command.thrust - _hover_thrust_b_) / _hover_thrust_a_, 2) / _g_;
+        double thrust_mass_estimate = mrs_lib::quadratic_thrust_model::thrustToForce(_motor_params_, attitude_command.thrust) / _g_;
         ROS_INFO_THROTTLE(1.0, "[BrickGrasping]: landing_uav_mass_: %f thrust_mass_estimate: %f", landing_uav_mass_, thrust_mass_estimate);
 
         if (((thrust_mass_estimate < _grasping_thrust_limiter_ratio_ * landing_uav_mass_) || attitude_command.thrust < 0.01)) {
@@ -4173,7 +4181,7 @@ void BrickGrasping::stateMachineTimer([[maybe_unused]] const ros::TimerEvent &ev
       }
 
       // | --------------------- touch detection -------------------- |
-      double thrust_mass_estimate = pow((attitude_command.thrust - _hover_thrust_b_) / _hover_thrust_a_, 2) / _g_;
+      double thrust_mass_estimate = mrs_lib::quadratic_thrust_model::thrustToForce(_motor_params_, attitude_command.thrust) / _g_;
       ROS_INFO_THROTTLE(1.0, "[BrickGrasping]: landing_uav_mass: %f thrust_mass_estimate: %f", landing_uav_mass_, thrust_mass_estimate);
 
       // condition for automatic motor turn off
@@ -4267,7 +4275,7 @@ void BrickGrasping::stateMachineTimer([[maybe_unused]] const ros::TimerEvent &ev
       }
 
       // | ------------------ the thrust condition ------------------ |
-      double thrust_mass_estimate = pow((attitude_command.thrust - _hover_thrust_b_) / _hover_thrust_a_, 2) / _g_;
+      double thrust_mass_estimate = mrs_lib::quadratic_thrust_model::thrustToForce(_motor_params_, attitude_command.thrust) / _g_;
       ROS_INFO_THROTTLE(1.0, "[BrickGrasping]: landing_uav_mass: %f thrust_mass_estimate: %f", landing_uav_mass_, thrust_mass_estimate);
 
       // condition for automatic motor turn off
@@ -4341,7 +4349,7 @@ void BrickGrasping::currentTargetTimer([[maybe_unused]] const ros::TimerEvent &e
   auto focused_brick = mrs_lib::get_mutexed(mutex_focused_brick_, focused_brick_);
 
   mbzirc_msgs::ObjectWithType object;
-  mrs_msgs::Float64Stamped    object_uav_yaw;
+  mrs_msgs::Float64Stamped    object_uav_heading;
 
   object.stamp = ros::Time::now();
   object.x     = focused_brick.states[POS_X];
@@ -4385,7 +4393,7 @@ void BrickGrasping::currentTargetTimer([[maybe_unused]] const ros::TimerEvent &e
   object_uav_odom.pose.orientation.z = sin((focused_brick.uav_odom.yaw) / 2.0);
   object_uav_odom.pose.orientation.w = cos((focused_brick.uav_odom.yaw) / 2.0);
 
-  object_uav_yaw.header = object_uav_odom.header;
+  object_uav_heading.header = object_uav_odom.header;
   try {
     publisher_current_target_uav_odom_.publish(object_uav_odom);
   }
@@ -4393,13 +4401,13 @@ void BrickGrasping::currentTargetTimer([[maybe_unused]] const ros::TimerEvent &e
     ROS_ERROR("Exception caught during publishing topic %s.", publisher_current_target_uav_odom_.getTopic().c_str());
   }
 
-  // publish yaw separately for debug (plotjuggler)
-  object_uav_yaw.value = focused_brick.uav_odom.yaw;
+  // publish heading separately for debug (plotjuggler)
+  object_uav_heading.value = focused_brick.uav_odom.yaw;
   try {
-    publisher_current_target_uav_yaw_.publish(object_uav_yaw);
+    publisher_current_target_uav_heading_.publish(object_uav_heading);
   }
   catch (...) {
-    ROS_ERROR("Exception caught during publishing topic %s.", publisher_current_target_uav_yaw_.getTopic().c_str());
+    ROS_ERROR("Exception caught during publishing topic %s.", publisher_current_target_uav_heading_.getTopic().c_str());
   }
 }
 

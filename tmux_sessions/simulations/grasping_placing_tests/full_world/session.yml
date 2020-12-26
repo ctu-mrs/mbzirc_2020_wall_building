@@ -51,7 +51,7 @@ windows:
   - goto:
       layout: even-vertical
       panes:
-        - 'history -s rosservice call /$UAV_NAME/brick_grasping/drop 1;
+        - 'history -s rosservice call /$UAV_NAME/brick_grasping/ground_place;
           history -s rosservice call /$UAV_NAME/control_manager/goto \"goal: \[0.0, -0.0, 3.0, 0.0\]\";
           history -s rosservice call /$UAV_NAME/brick_grasping/start 1;
           history -s rosservice call /$UAV_NAME/control_manager/goto \"goal: \[0.0, -15.0, 3.0, 0.0\]\"'
