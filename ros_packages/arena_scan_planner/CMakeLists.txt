@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.1.2)
 project(arena_scan_planner)
 
 ##################################
@@ -16,7 +16,7 @@ else()
 endif()
 ####:##############################
 
-find_package(catkin REQUIRED COMPONENTS  
+find_package(catkin REQUIRED COMPONENTS
   message_generation
   roscpp
   std_msgs
@@ -28,9 +28,9 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   )
 
-# include Eigen3                                                    
-find_package(Eigen3 REQUIRED)                                       
-set(Eigen_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS})                      
+# include Eigen3
+find_package(Eigen3 REQUIRED)
+set(Eigen_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS})
 set(Eigen_LIBRARIES ${EIGEN3_LIBRARIES})
 
 ## Generate messages in the 'msg' folder
@@ -48,7 +48,7 @@ add_service_files(
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(DEPENDENCIES
-  std_msgs  
+  std_msgs
   geometry_msgs
   mrs_msgs
   )
@@ -92,8 +92,8 @@ set(dubins_lib_sources
   src/dubins/dubins.cpp
   src/dubins/dubinsmaneuver.cpp
   src/dubins/dubinspath.cpp
-  src/dubins/line.cpp  
-  src/dubins/path.cpp  
+  src/dubins/line.cpp
+  src/dubins/path.cpp
   src/dubins/state.cpp
   src/dubins/MathCommon.cpp)
 
@@ -111,7 +111,7 @@ add_executable(arena_scan_planner src/dubins_trajectory.cpp src/arena_scan_plann
 add_dependencies(arena_scan_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(
-  arena_scan_planner 
+  arena_scan_planner
   dubins_lib
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBRARIES}

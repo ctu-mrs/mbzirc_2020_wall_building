@@ -1,11 +1,9 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.1.2)
 project(brick_mapping)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   roscpp
@@ -24,13 +22,12 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   )
 
-# include Eigen3
 find_package(Eigen3 REQUIRED)
 set(Eigen_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS})
 set(Eigen_LIBRARIES ${EIGEN3_LIBRARIES})
 
 add_message_files(DIRECTORY msg FILES
-  MappedArenaObjects.msg  # e.g. Floats.msg HeaderString.msg
+  MappedArenaObjects.msg
   MappedArenaObjectsStamped.msg
 )
 
