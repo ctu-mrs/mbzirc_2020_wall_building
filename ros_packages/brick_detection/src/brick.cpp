@@ -358,7 +358,7 @@ void brick_init(void) {
 
   min_wall = Vec3b(16, 30, 160);
   max_wall = Vec3b(44, 255, 255);
-  
+
   max_w_sat=60;
   min_w_val=180;
   max_w_val=255;
@@ -964,7 +964,7 @@ static void add_new_brick(Point2f &center, float yaw_br, float size_br, enum Bri
         brick_arr[white_to_brick[min_loc]].size = size_br;
         white_to_size[min_loc] = pix_size;
       }
-    } else {  
+    } else {
       if (debug_detector) {
         circle(*dbg, Point(dbg_real_x(white_arr[min_loc].c_x / brick_alt), dbg_real_y(white_arr[min_loc].c_y / brick_alt)), 8, Scalar(100, 200, 2550), 2);
       }
@@ -979,7 +979,7 @@ static void add_new_brick(Point2f &center, float yaw_br, float size_br, enum Bri
       if (act_num_bricks >= gBrick_array_size) {
         ROS_DEBUG("Lot of bricks.n");
         act_num_bricks--;
-      } 
+      }
     }
  // } else {
  //   ROS_DEBUG_STREAM("ERROR: Brick without white type:" << br_type << " cen:" << center.x << "," << center.y << " distance to white:" << min_dist << " ind:" << min_loc<< " size:"<<size_br<<" pix:"<<pix_size);
@@ -1119,7 +1119,7 @@ static void find_componenets(Mat thr, enum Brick_type br_type) {
             line(*dbg, vtx[ii], vtx[(ii + 1) % 4], br_color[(int)br_type - 1], 1, LINE_AA);
           }
         }
-        /* 
+        /*
         if (pointPolygonTest(real_contour, center, false) < 0) {  // not centered object, now skew
           orig_real_contour = real_contour;
           skew_contour(orig_real_contour, real_contour, (altitude / brick_alt));
@@ -1175,7 +1175,7 @@ static void find_componenets(Mat thr, enum Brick_type br_type) {
           } else {
             ROS_DEBUG_STREAM("WRONG SIZE old " << bo_len << ", " << bo_width << " new " << b_len << ", " << b_width << " type " << br_type);
           }
-          
+
         }*/
       }
     }
@@ -1213,7 +1213,7 @@ static void find_ugv_pattern(Mat thr) {
 
   for (; i < (int)hierarchy.size() && i >= 0;) {
     double pix_size = contourArea(contours[i]);
-    
+
     int n_holes=0;
     if (hierarchy[i][2] != -1) {
       int h_i = hierarchy[i][2];
@@ -1225,7 +1225,7 @@ static void find_ugv_pattern(Mat thr) {
     if (n_holes > 30) {
       bool valid = true;
       real_contour.clear();
-      
+
       if (contours[i].size() < 4000) {
         for (auto &p : contours[i]) {
           omnidir_undistortPoints((float)p.x, (float)p.y, real_c[real_c_num].x, real_c[real_c_num].y);
@@ -1267,7 +1267,7 @@ static void find_ugv_pattern(Mat thr) {
           }
           act_num_bricks++;
         }
-      } 
+      }
     }
     i = hierarchy[i][0];
   }
@@ -1321,7 +1321,7 @@ findLocalMaximums( int numrho, int numangle, int threshold,
 }
 
 
-void HoughLinesPointSet( InputArray _point, OutputArray _lines, int lines_max, int threshold,
+void MyHoughLinesPointSet( InputArray _point, OutputArray _lines, int lines_max, int threshold,
                          double min_rho, double max_rho, double rho_step,
                          double min_theta, double max_theta, double theta_step )
 {
@@ -1410,7 +1410,7 @@ static vector<Vec3d>  h_lines;
     if (n_holes > 20) {
       //bool valid = true;
       real_contour.clear();
-      
+
       int h_j = hierarchy[i][2];
       while (h_j!=-1) {
          Moments mu = moments( contours[h_j], false );
@@ -1433,10 +1433,10 @@ static vector<Vec3d>  h_lines;
       double rhoMin = 0.0f, rhoMax = 4.0f, rhoStep = 0.2;
       double thetaMin = 0.0f, thetaMax = CV_PI / 2.0f, thetaStep = CV_PI / 36.0f;
       h_lines.clear();
-      HoughLinesPointSet(real_contour, h_lines, 20, 5,
+      MyHoughLinesPointSet(real_contour, h_lines, 20, 5,
                        rhoMin, rhoMax, rhoStep,
                        thetaMin, thetaMax, thetaStep);
-      
+
       /*RotatedRect box = minAreaRect(real_contour);
       if (act_num_bricks>0 && brick_arr[act_num_bricks-1].type == UGV_TYPE) {
         brick_arr[act_num_bricks-1].c_x = (brick_arr[act_num_bricks-1].c_x+box.center.x)/2.0;
@@ -1864,7 +1864,7 @@ int find_bricks(Mat src, brick *brick_array, int brick_array_size, int input_bri
   }
 
   cvtColor(src, hsv_src, COLOR_BGR2HSV);
-  
+
   if (mode>=0 && mode<8) {
     inRange(hsv_src, min_white, max_white, white_thr);
 
@@ -1883,7 +1883,7 @@ int find_bricks(Mat src, brick *brick_array, int brick_array_size, int input_bri
       dilate(white_thr, thr_pre_mask, erosion_element);
       erode(thr_pre_mask, white_erode_thr, erosion_element);
     }
-    
+
     if (simul_camera) {
       min_size = (int)(min_koef * (float)min_sizes[0] / (brick_alt * brick_alt));
       max_size = (int)((float)1.5 * max_sizes[0] / (brick_alt * brick_alt));
@@ -1943,7 +1943,7 @@ int find_bricks(Mat src, brick *brick_array, int brick_array_size, int input_bri
       find_ugv_pattern(red_thr);
     }
   }
-  
+
   if ((mode==0) || (mode==2)) {
     if (is_mask) {
       inRange(hsv_src, min_green, max_green, thr_pre_mask);
@@ -1964,7 +1964,7 @@ int find_bricks(Mat src, brick *brick_array, int brick_array_size, int input_bri
     }
     find_componenets(green_thr, GREEN_TYPE);
   }
-  
+
   if ((mode==0) || (mode==3)) {
     if (is_mask) {
       inRange(hsv_src, min_blue, max_blue, thr_pre_mask);
@@ -1988,7 +1988,7 @@ int find_bricks(Mat src, brick *brick_array, int brick_array_size, int input_bri
     }
     find_componenets(blue_thr, BLUE_TYPE);
   }
-  
+
   /*   inRange(hsv_src, min_orange, max_orange, orange_thr);
   min_size = (int)(0.53*min_koef*(float)min_sizes[3] / (brick_alt * brick_alt));
   max_size = (int)((float)max_sizes[3] / (brick_alt * brick_alt));
