@@ -113,7 +113,7 @@ private:
   ros::Publisher pub_mapped_arena_;
 
   // subscribers definition
-  std::vector<mrs_lib::SubscribeHandlerPtr<plan_keeper::PlanDiagnostics>> sub_diagnostics_list_;
+  std::vector<mrs_lib::SubscribeHandler<plan_keeper::PlanDiagnostics>> sub_diagnostics_list_;
 
   // services definition
   ros::ServiceServer service_plan_;
@@ -136,7 +136,7 @@ private:
   ros::Timer diagnostics_timer_;
 
   // | -------------------subscriber callbacks ------------------- |
-  void callbackDiagnostics(mrs_lib::SubscribeHandlerPtr<plan_keeper::PlanDiagnostics> sh_ptr);
+  void callbackDiagnostics(mrs_lib::SubscribeHandler<plan_keeper::PlanDiagnostics> sh_ptr);
 
   // | ------------------- service callbacks ------------------- |
   // bool callbackLoadPlan(plan_keeper::RobotPlan::Request& req, plan_keeper::RobotPlan::Response& res);

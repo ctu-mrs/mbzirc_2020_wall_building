@@ -236,9 +236,10 @@ PlanKeeper::~PlanKeeper() {
 /* //{ PlanKeeper::callbackDiagnostics(...) */
 
 /* void PlanKeeper::callbackDiagnostics(const plan_keeper::PlanDiagnostics &msg) { */
-void PlanKeeper::callbackDiagnostics(mrs_lib::SubscribeHandlerPtr<plan_keeper::PlanDiagnostics> sh_ptr) {
+void PlanKeeper::callbackDiagnostics(mrs_lib::SubscribeHandler<plan_keeper::PlanDiagnostics> sh_ptr) {
   /* ROS_INFO_STREAM("[PlanKeeper]: callbackDiagnostics begin"); */
-  auto msg = sh_ptr->getMsg();
+
+  auto msg = sh_ptr.getMsg();
 
   std::vector<string>::iterator it;
 
