@@ -58,10 +58,10 @@
         <!-- Subscribed topics -->
       <remap from="~image" to="bluefox_brick/image_raw" />
       <remap from="~cam_info" to="bluefox_brick/camera_info" />
-      <remap if="$(eval arg('RUN_TYPE') == 'simulation')" from="~depth_image" to="rs_d435/aligned_depth_to_color/image_raw" />
-      <remap if="$(eval arg('RUN_TYPE') == 'simulation')" from="~depth_camera_info" to="rs_d435/aligned_depth_to_color/camera_info" />
-      <remap if="$(eval arg('RUN_TYPE') == 'uav')" from="~depth_image" to="rs_d435/depth/image_rect_raw" />
-      <remap if="$(eval arg('RUN_TYPE') == 'uav')" from="~depth_camera_info" to="rs_d435/depth/camera_info" />
+      <remap if="$(eval arg('RUN_TYPE') == 'simulation')" from="~depth_image" to="rgbd_down/aligned_depth_to_color/image_raw" />
+      <remap if="$(eval arg('RUN_TYPE') == 'simulation')" from="~depth_camera_info" to="rgbd_down/aligned_depth_to_color/camera_info" />
+      <remap if="$(eval arg('RUN_TYPE') == 'uav')" from="~depth_image" to="rgbd_down/depth/image_rect_raw" />
+      <remap if="$(eval arg('RUN_TYPE') == 'uav')" from="~depth_camera_info" to="rgbd_down/depth/camera_info" />
       <remap from="~grasping_result" to="landing_object_controller/grasping_result" />
       <remap from="~odometry_in" to="odometry/odom_stable" />
       <remap from="~garmin_in" to="$(arg range_topic)" />
@@ -88,9 +88,9 @@
 
     <node name="republisher_bfx" pkg="image_transport" type="republish" args="compressed in:=/$(arg UAV_NAME)/bluefox_brick/image_raw raw out:=/$(arg UAV_NAME)/bluefox_brick/image_raw" output="screen" />
 
-    <node name="republisher_rs" pkg="image_transport" type="republish" args="compressed in:=/$(arg UAV_NAME)/rs_d435/aligned_depth_to_color/image_raw raw out:=/$(arg UAV_NAME)/rs_d435/aligned_depth_to_color/image_raw" output="screen" />
+    <node name="republisher_rs" pkg="image_transport" type="republish" args="compressed in:=/$(arg UAV_NAME)/rgbd_down/aligned_depth_to_color/image_raw raw out:=/$(arg UAV_NAME)/rgbd_down/aligned_depth_to_color/image_raw" output="screen" />
 
-    <node name="republisher_rs2" pkg="image_transport" type="republish" args="compressedDepth in:=/$(arg UAV_NAME)rs_d435/depth/image_rect_raw raw out:=/$(arg UAV_NAME)/rs_d435/depth/image_rect_raw" output="screen" />
+    <node name="republisher_rs2" pkg="image_transport" type="republish" args="compressedDepth in:=/$(arg UAV_NAME)rgbd_down/depth/image_rect_raw raw out:=/$(arg UAV_NAME)/rgbd_down/depth/image_rect_raw" output="screen" />
 
   </group>
 
