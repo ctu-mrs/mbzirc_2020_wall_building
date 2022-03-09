@@ -38,7 +38,7 @@ double timeStep = 0.1;
 double outOfAreaAccMaxRatio = 0.2;
 double maxConnectDistanceXY = 0.3;
 double maxConnectDistanceXYLargeObject = 0.3;
-double requiredRobotAboveDist = 0.32;
+double requiredRobotAboveDist = 0.5;
 double requiredRobotAboveDistMaxErr = 0.04;
 double startRepulsionFromDistance = 2.0;
 double multiplyRepulseEffort = 10.0;
@@ -337,14 +337,14 @@ void model_states_callback(const gazebo_msgs::ModelStates modelStates) {
 		for (unsigned int var = 0; var < robot_names.size(); ++var) {
 			if (objectName.compare(robot_names[var]) == 0) {
 				robotPoses[var] = poses[receivedNamesId];
-				// ROS_INFO_STREAM("set position of "<<robot_names[var]);
+				/* ROS_INFO_STREAM("set position of "<< robot_names[var]); */
 			}
 		}
 
 		for (unsigned int var = 0; var < all_objects.size(); ++var) {
 			if (objectName.compare(all_objects[var]) == 0) {
 				all_object_poses[var] = poses[receivedNamesId];
-				// ROS_INFO_STREAM("set position of "<<all_object_poses[var]);
+				/* ROS_INFO_STREAM("set position of "<< all_object_poses[var]); */
 			}
 		}
 	}
