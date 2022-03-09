@@ -29,6 +29,7 @@
 #include <mrs_lib/geometry/misc.h>
 #include <mrs_lib/geometry/cyclic.h>
 #include <mrs_lib/quadratic_thrust_model.h>
+#include <mrs_lib/attitude_converter.h>
 
 #include <mrs_msgs/Vec4.h>
 #include <mrs_msgs/TrajectoryReference.h>
@@ -62,6 +63,11 @@
 
 //}
 
+using namespace Eigen;
+
+namespace brick_grasping
+{
+
 /* using //{ */
 
 using vec2_t = mrs_lib::geometry::vec_t<2>;
@@ -71,11 +77,6 @@ using radians  = mrs_lib::geometry::radians;
 using sradians = mrs_lib::geometry::sradians;
 
 //}
-
-using namespace Eigen;
-
-namespace brick_grasping
-{
 
 /* defines //{ */
 
@@ -234,7 +235,7 @@ private:
   std::string _uav_name_;
 
   // transfomer
-  mrs_lib::Transformer transformer_;
+  std::unique_ptr<mrs_lib::Transformer> transformer_;
 
   double _map_long_inactive_time_;
   double _map_short_inactive_time_;
@@ -543,8 +544,8 @@ private:
   double getMinHeight();
   double original_min_height_ = 0;
 
-  double alignedWithTarget(const double position_thr, const double heading_thr, Alignment_t mode);
-  double lastAlignmentCheck(void);
+  bool alignedWithTarget(const double position_thr, const double heading_thr, Alignment_t mode);
+  bool lastAlignmentCheck(void);
 
   // | ---------------------- action server --------------------- |
 
@@ -839,7 +840,8 @@ void BrickGrasping::onInit() {
   median_filter_gripper_            = std::make_unique<MedianFilter>(_gripper_filter_buffer_size_, 2.0, -1.0, _gripper_filter_max_difference_);
   median_filter_simulation_gripper_ = std::make_unique<MedianFilter>(3, 2.0, -1.0, _gripper_filter_max_difference_);
 
-  transformer_ = mrs_lib::Transformer("BrickGrasping", _uav_name_);
+  transformer_ = std::make_unique<mrs_lib::Transformer>("BrickGrasping");
+  transformer_->setDefaultPrefix(_uav_name_);
 
   lost_alignment_counter  = 0;
   repeat_grasping_counter = 0;
@@ -958,7 +960,7 @@ void BrickGrasping::callbackOdometryMain(const nav_msgs::OdometryConstPtr &msg) 
   // | ---------------- transform to stable origin --------------- |
 
   {
-    auto ret = transformer_.transformSingle("stable_origin", odometry_main);
+    auto ret = transformer_->transformSingle(odometry_main, "stable_origin");
 
     if (ret) {
 
@@ -971,7 +973,7 @@ void BrickGrasping::callbackOdometryMain(const nav_msgs::OdometryConstPtr &msg) 
   // | ---------------- transform to brick origin --------------- |
 
   {
-    auto ret = transformer_.transformSingle("brick_origin", odometry_main);
+    auto ret = transformer_->transformSingle(odometry_main, "brick_origin");
 
     if (ret) {
 
@@ -1267,7 +1269,7 @@ void BrickGrasping::callbackPositionCmd(const nav_msgs::OdometryConstPtr &msg) {
   // | ---------------- transform to stable origin --------------- |
 
   {
-    auto ret = transformer_.transformSingle("stable_origin", cmd_odom);
+    auto ret = transformer_->transformSingle(cmd_odom, "stable_origin");
 
     if (ret) {
 
@@ -1280,7 +1282,7 @@ void BrickGrasping::callbackPositionCmd(const nav_msgs::OdometryConstPtr &msg) {
   // | ---------------- transform to brick origin --------------- |
 
   {
-    auto ret = transformer_.transformSingle("brick_origin", cmd_odom);
+    auto ret = transformer_->transformSingle(cmd_odom, "brick_origin");
 
     if (ret) {
 
@@ -1758,7 +1760,7 @@ void BrickGrasping::publishDiagnostics(void) {
   diagnostics.active = ((current_state_ == 0) ? false : true);
 
   {
-    auto res = transformer_.transformSingle("utm_origin", odometry_main_stable);
+    auto res = transformer_->transformSingle(odometry_main_stable, "utm_origin");
 
     geometry_msgs::PoseStamped odom_utm;
 
@@ -1784,7 +1786,7 @@ void BrickGrasping::publishDiagnostics(void) {
     focused_brick_stable.pose.position.z    = focused_brick.states[POS_Z];
     focused_brick_stable.pose.orientation.w = 1.0;
 
-    auto res = transformer_.transformSingle("utm_origin", focused_brick_stable);
+    auto res = transformer_->transformSingle(focused_brick_stable, "utm_origin");
 
     if (res) {
 
@@ -1885,12 +1887,21 @@ bool BrickGrasping::brickVisible(int type) {
       break;
     }
 
-    case WALL_RED:
+    case WALL_RED: {
       break;
-    case WALL_BLUE:
+    }
+
+    case WALL_BLUE: {
       break;
-    case WALL_GREEN:
+    }
+
+    case WALL_GREEN: {
       break;
+    }
+
+    default: {
+      break;
+    }
   }
 
   return false;
@@ -2634,7 +2645,7 @@ mrs_msgs::TrajectoryReference BrickGrasping::createTrajectory(int trajectoryType
       desired_heading = fabs(radians::diff(brick_stable_heading, cmd_odom_stable_heading)) < (M_PI / 2.0) ? brick_stable_heading : brick_stable_heading + M_PI;
     }
 
-    auto res = transformer_.transformSingle(trajectory.header.frame_id, fcu_offset);
+    auto res = transformer_->transformSingle(fcu_offset, trajectory.header.frame_id);
 
     geometry_msgs::Vector3Stamped current_offset;
 
@@ -3389,7 +3400,7 @@ bool BrickGrasping::isHighWind() {
 
 /* alignedWithTarget() //{ */
 
-double BrickGrasping::alignedWithTarget(const double position_thr, const double heading_thr, Alignment_t mode) {
+bool BrickGrasping::alignedWithTarget(const double position_thr, const double heading_thr, Alignment_t mode) {
 
   auto current_target       = mrs_lib::get_mutexed(mutex_current_target_, current_target_);
   auto odometry_main_stable = mrs_lib::get_mutexed(mutex_odometry_main_, odometry_main_stable_);
@@ -3405,7 +3416,7 @@ double BrickGrasping::alignedWithTarget(const double position_thr, const double 
 
   // transform current target to stable origin
 
-  auto ret = transformer_.transformSingle("stable_origin", current_target);
+  auto ret = transformer_->transformSingle(current_target, "stable_origin");
 
   mrs_msgs::ReferenceStamped current_target_stable;
 
@@ -3466,7 +3477,7 @@ double BrickGrasping::alignedWithTarget(const double position_thr, const double 
 
 /* lastAlignmentCheck() //{ */
 
-double BrickGrasping::lastAlignmentCheck(void) {
+bool BrickGrasping::lastAlignmentCheck(void) {
 
   auto current_target      = mrs_lib::get_mutexed(mutex_current_target_, current_target_);
   auto odometry_main_brick = mrs_lib::get_mutexed(mutex_odometry_main_, odometry_main_brick_);
@@ -3485,7 +3496,7 @@ double BrickGrasping::lastAlignmentCheck(void) {
 
   // transform current target to brick origin
 
-  auto ret = transformer_.transformSingle("brick_origin", current_target);
+  auto ret = transformer_->transformSingle(current_target, "brick_origin");
 
   mrs_msgs::ReferenceStamped current_target_brick_frame;
 

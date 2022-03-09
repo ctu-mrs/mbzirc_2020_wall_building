@@ -13,6 +13,7 @@
 #include <mrs_lib/transformer.h>
 #include <mrs_lib/geometry/cyclic.h>
 #include <mrs_lib/geometry/misc.h>
+#include <mrs_lib/attitude_converter.h>
 
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
@@ -47,6 +48,9 @@
 
 //}
 
+namespace brick_estimation
+{
+
 /* using //{ */
 
 using vec2_t = mrs_lib::geometry::vec_t<2>;
@@ -76,9 +80,6 @@ using R_t        = lkf_t::R_t;
 using statecov_t = lkf_t::statecov_t;
 
 //}
-
-namespace brick_estimation
-{
 
 using namespace Eigen;
 
@@ -196,7 +197,7 @@ private:
 
   ros::ServiceClient service_client_validate_reference_;
 
-  mrs_lib::Transformer transformer_;
+  std::unique_ptr<mrs_lib::Transformer> transformer_;
 
   bool callbackRestart(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
   bool callbackBanArea(mbzirc_msgs::BanArea::Request &req, mbzirc_msgs::BanArea::Response &res);
@@ -450,7 +451,8 @@ void BrickEstimation::onInit() {
     ros::shutdown();
   }
 
-  transformer_ = mrs_lib::Transformer("BrickEstimation", _uav_name_);
+  transformer_ = std::make_unique<mrs_lib::Transformer>("BrickEstimation");
+  transformer_->setDefaultPrefix(_uav_name_);
 
   is_initialized_ = true;
 
@@ -478,7 +480,7 @@ void BrickEstimation::callbackOdometry(const nav_msgs::OdometryConstPtr &msg) {
 
   // | ---------------- transform to stable origin --------------- |
 
-  auto res = transformer_.transformSingle("stable_origin", odometry_main);
+  auto res = transformer_->transformSingle(odometry_main, "stable_origin");
 
   if (res) {
 
@@ -1239,7 +1241,7 @@ void BrickEstimation::otherDroneDiagnostics(const mbzirc_msgs::BrickGraspingDiag
     other_drone_odom_its_stable.header.stamp    = ros::Time::now();
     other_drone_odom_its_stable.pose            = msg->position;
 
-    auto res = transformer_.transformSingle("stable_origin", other_drone_odom_its_stable);
+    auto res = transformer_->transformSingle(other_drone_odom_its_stable, "stable_origin");
 
     geometry_msgs::PoseStamped other_drone_odom_my_stable;
 
@@ -1260,7 +1262,7 @@ void BrickEstimation::otherDroneDiagnostics(const mbzirc_msgs::BrickGraspingDiag
     other_drone_target_its_stable.header.stamp    = ros::Time::now();
     other_drone_target_its_stable.pose            = msg->target;
 
-    auto res = transformer_.transformSingle("stable_origin", other_drone_target_its_stable);
+    auto res = transformer_->transformSingle(other_drone_target_its_stable, "stable_origin");
 
     if (res) {
 
@@ -2039,13 +2041,13 @@ void BrickEstimation::mapTimer([[maybe_unused]] const ros::TimerEvent &event) {
     mbzirc_msgs::BrickMap map_out;
 
     map_out.header.stamp    = ros::Time::now();
-    map_out.header.frame_id = transformer_.resolveFrameName("gps_origin");
+    map_out.header.frame_id = transformer_->resolveFrame("gps_origin");
 
-    auto res = transformer_.getTransform(map_frame, "gps_origin", ros::Time::now());
+    auto res = transformer_->getTransform(map_frame, "gps_origin", ros::Time::now());
 
     if (res) {
 
-      mrs_lib::TransformStamped tf;
+      geometry_msgs::TransformStamped tf;
 
       tf = res.value();
 
@@ -2060,7 +2062,7 @@ void BrickEstimation::mapTimer([[maybe_unused]] const ros::TimerEvent &event) {
         pose.reference.position.z = obj_pointer->z - 0.2;
         pose.reference.heading    = obj_pointer->yaw;
 
-        auto res = transformer_.transform(tf, pose);
+        auto res = transformer_->transform(pose, tf);
 
         if (!res) {
           continue;
@@ -2082,7 +2084,7 @@ void BrickEstimation::mapTimer([[maybe_unused]] const ros::TimerEvent &event) {
         covariance.vector.y        = obj_pointer->statecov.P(1, 1);
         covariance.vector.z        = obj_pointer->statecov.P(2, 2);
 
-        auto res2 = transformer_.transform(tf, covariance);
+        auto res2 = transformer_->transform(covariance, tf);
 
         if (!res2) {
           continue;
@@ -2213,7 +2215,7 @@ void BrickEstimation::debugTimer([[maybe_unused]] const ros::TimerEvent &event) 
   /* closest blue //{ */
 
   // find the closest and active blue brick
-  brick_ptr = findClosest(odometry_stable.pose.position.x, odometry_stable.pose.position.y, tf::getYaw(odometry_stable.pose.orientation), OBJECT_BLUE);
+  brick_ptr = findClosest(odometry_stable.pose.position.x, odometry_stable.pose.position.y, true, OBJECT_BLUE);
 
   // if there are none, return
   if (brick_ptr == object_list_.end()) {
