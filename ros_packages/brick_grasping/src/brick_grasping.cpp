@@ -295,10 +295,10 @@ private:
 
   void freshFocusedBrick(const mbzirc_msgs::MbzircBrick brick_in);
 
-  std::unique_ptr<MedianFilter> median_filter_gripper_;
-  std::unique_ptr<MedianFilter> median_filter_simulation_gripper_;
-  int                           _gripper_filter_buffer_size_;
-  double                        _gripper_filter_max_difference_;
+  std::unique_ptr<mrs_lib::MedianFilter> median_filter_gripper_;
+  std::unique_ptr<mrs_lib::MedianFilter> median_filter_simulation_gripper_;
+  int                                    _gripper_filter_buffer_size_;
+  double                                 _gripper_filter_max_difference_;
 
   std::string _brick_traverse_constraints_;
   std::string _nobrick_traverse_constraints_;
@@ -837,8 +837,8 @@ void BrickGrasping::onInit() {
     ros::shutdown();
   }
 
-  median_filter_gripper_            = std::make_unique<MedianFilter>(_gripper_filter_buffer_size_, 2.0, -1.0, _gripper_filter_max_difference_);
-  median_filter_simulation_gripper_ = std::make_unique<MedianFilter>(3, 2.0, -1.0, _gripper_filter_max_difference_);
+  median_filter_gripper_            = std::make_unique<mrs_lib::MedianFilter>(_gripper_filter_buffer_size_, 2.0, -1.0, _gripper_filter_max_difference_);
+  median_filter_simulation_gripper_ = std::make_unique<mrs_lib::MedianFilter>(3, 2.0, -1.0, _gripper_filter_max_difference_);
 
   transformer_ = std::make_unique<mrs_lib::Transformer>("BrickGrasping");
   transformer_->setDefaultPrefix(_uav_name_);
@@ -1447,11 +1447,11 @@ void BrickGrasping::callbackGripperSimulation(const mrs_msgs::GripperDiagnostics
 
   ROS_INFO_ONCE("[BrickGrasping]: getting gripper feedback");
 
-  median_filter_simulation_gripper_->isValid(double(msg->gripping_object));
+  median_filter_simulation_gripper_->check(double(msg->gripping_object));
 
-  if (median_filter_simulation_gripper_->isFilled()) {
+  if (median_filter_simulation_gripper_->full()) {
 
-    if (median_filter_simulation_gripper_->getMedian() > 0) {
+    if (median_filter_simulation_gripper_->median() > 0) {
 
       last_object_gripped_time_ = ros::Time::now();
       object_gripped_           = true;
@@ -1474,11 +1474,11 @@ void BrickGrasping::callbackGripper(const mrs_msgs::GripperDiagnosticsConstPtr &
 
   ROS_INFO_ONCE("[BrickGrasping]: getting gripper feedback");
 
-  median_filter_gripper_->isValid(double(msg->gripping_object));
+  median_filter_gripper_->check(double(msg->gripping_object));
 
-  if (median_filter_gripper_->isFilled()) {
+  if (median_filter_gripper_->full()) {
 
-    if (median_filter_gripper_->getMedian() > 0) {
+    if (median_filter_gripper_->median() > 0) {
 
       last_object_gripped_time_ = ros::Time::now();
       object_gripped_           = true;

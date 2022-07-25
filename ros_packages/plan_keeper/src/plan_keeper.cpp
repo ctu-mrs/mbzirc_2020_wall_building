@@ -891,9 +891,13 @@ bool PlanKeeper::loadPlanBackup() {
     myfile.close();
 
     ROS_INFO_STREAM("[PlanKeeper]: Loaded backup plan with robot index " << robots_plans_indexes_[_robot_index_]);
+    return true;
+
   } else {
     ROS_ERROR("[PlanKeeper]: Unable to open file: \"%s\"", filename.c_str());
+    return false;
   };
+
 }
 //}
 
@@ -947,7 +951,7 @@ int main(int argc, char **argv) {
 
   ros::Rate loop(looprate);
   double    count_publish = ((double)looprate) / ((double)publish_arena_state_rate);
-  while (ros::ok) {
+  while (ros::ok()) {
     count_publish -= 1.0;
     if (count_publish <= 0) {
       count_publish = looprate / ((double)publish_arena_state_rate);
